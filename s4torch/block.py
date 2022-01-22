@@ -8,7 +8,7 @@ from typing import Any
 import torch
 from torch import nn
 
-from s4torch import S4Layer
+from s4torch.layer import S4Layer
 
 
 class S4Block(nn.Module):
