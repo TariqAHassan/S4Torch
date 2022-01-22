@@ -58,6 +58,7 @@ l_max = 784
 u = torch.randn((1, l_max, d_model))
 
 s4_layer = S4Layer(d_model, n=N, l_max=l_max)
+assert s4_layer(u).shape == u.shape
 ```
 
 ### Block
