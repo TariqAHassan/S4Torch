@@ -40,7 +40,7 @@ s4model = S4Model(
 assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 ```
 
-### Layers and Blocks
+## Components
 
 ### Layer
 
