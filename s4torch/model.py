@@ -62,7 +62,7 @@ if __name__ == "__main__":
     d_output = 128
     l_max = 784
 
-    u = torch.randn((1, l_max, d_input)).float()
+    u = torch.randn((1, l_max, d_input))
 
     s4model = S4Model(
         d_input,

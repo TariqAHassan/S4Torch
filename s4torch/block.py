@@ -47,7 +47,7 @@ if __name__ == "__main__":
     d_output = 128
     l_max = 784
 
-    u = torch.randn((1, l_max, d_model)).float()
+    u = torch.randn((1, l_max, d_model))
 
     s4block = S4Block(d_model, n=N, l_max=l_max)
     assert s4block(u).shape == u.shape
