@@ -22,8 +22,8 @@ def _log_step_initializer(
     return tensor * scale + np.log(dt_min)
 
 
-def _make_omega_l(l_max: int) -> torch.Tensor:
-    return torch.arange(l_max).type(torch.complex128).mul(2j * np.pi / l_max).exp()
+def _make_omega_l(l_max: int, dtype: torch.dtype) -> torch.Tensor:
+    return torch.arange(l_max).type(dtype).mul(2j * np.pi / l_max).exp()
 
 
 def _make_hippo(N: int) -> np.ndarray:
@@ -123,6 +123,7 @@ class S4Layer(nn.Module):
         train_p: bool = False,
         train_q: bool = False,
         train_lambda: bool = False,
+        complex_dtype: torch.dtype = torch.complex64,
     ) -> None:
         super().__init__()
         self.d_model = d_model
@@ -131,14 +132,15 @@ class S4Layer(nn.Module):
         self.train_p = train_p
         self.train_q = train_q
         self.train_lambda = train_lambda
+        self.complex_dtype = complex_dtype
 
-        p, q, lambda_ = _make_buffers(n)
+        p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_buffers(n))
         self._register_tensor("p", tensor=p, trainable=train_p)
         self._register_tensor("q", tensor=q, trainable=train_q)
         self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda)
         self._register_tensor(
             "omega_l",
-            tensor=_make_omega_l(self.l_max),
+            tensor=_make_omega_l(self.l_max, dtype=complex_dtype),
             trainable=False,
         )
 
