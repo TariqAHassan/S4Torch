@@ -109,6 +109,30 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
 
 
 class S4Layer(nn.Module):
+    """S4 Layer.
+
+    Structured State Space for (Long) Sequences (S4) layer.
+
+    Args:
+        d_model (int): number of internal features
+        n (int): dimensionality of the state representation
+        l_max (int): length of input signal
+        train_p (bool): train the ``p`` tensor
+        train_q (bool): train the ``q`` tensor
+        train_lambda (bool): train the ``Lambda`` tensor
+
+    Attributes:
+        p (torch.Tensor): ``p`` tensor as buffer if ``train_p=False``,
+            else else a parameter
+        q (torch.Tensor): ``q`` tensor as buffer if ``train_p=False``,
+            else else a parameter
+        lambda_ (torch.Tensor): ``lambda_`` tensor as buffer if ``train_p=False``,
+            else else a parameter
+        omega_l (torch.Tensor): omega tensor (of length ``l_max``) used to obtain ``K``.
+        ifft_order (torch.Tensor): reordering for outputs of ``torch.fft.ifft()``.
+
+    """
+
     p: torch.Tensor
     q: torch.Tensor
     lambda_: torch.Tensor
@@ -177,6 +201,7 @@ class S4Layer(nn.Module):
 
     @property
     def K(self) -> torch.Tensor:  # noqa
+        """K convolutional filter."""
         k_gen = _k_gen_dplr(
             lambda_=self.lambda_,
             p=self.p,
@@ -188,6 +213,15 @@ class S4Layer(nn.Module):
         return self._conv_from_gen(k_gen).unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+
+        Args:
+            u (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_INPUT]``
+
+        Returns:
+            y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
+
+        """
         return _non_circular_convolution(u, K=self.K) + (self.D * u)
 
 

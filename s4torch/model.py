@@ -12,6 +12,29 @@ from s4torch.block import S4Block
 
 
 class S4Model(nn.Module):
+    """S4 Model.
+
+    High-level implementation of the S4 model which:
+
+        1. encodes the input using a linear layer
+        2. applies ``1..n_layers`` S4 blocks
+        3. decodes the output of 2. using another linear layer
+
+    Args:
+        d_input (int): number of input features
+        d_model (int): number of internal features
+        d_output (int): number of features to return
+        n_layers (int): number of S4 layers to construct
+        n (int): dimensionality of the state representation
+        l_max (int): length of input signal
+        collapse (bool): if ``True`` average results over
+            time prior to decoding the result of the S4 block(s)
+        p_dropout (float): probability of elements being set to zero
+        **kwargs (Keyword Args): Keyword arguments to be passed to
+            ``S4Block()``.
+
+    """
+
     def __init__(
         self,
         d_input: int,
@@ -49,6 +72,15 @@ class S4Model(nn.Module):
         )
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+
+        Args:
+            u (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_INPUT]``
+
+        Returns:
+            y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
+
+        """
         y = self.encoder(u)
         for layer in self.layers:
             y = layer(y)

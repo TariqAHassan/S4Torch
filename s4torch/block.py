@@ -12,6 +12,22 @@ from s4torch import S4Layer
 
 
 class S4Block(nn.Module):
+    """S4 Block.
+
+    Applies an ``S4Layer()``, followed by an activation
+    function, dropout, linear layer skip connection and
+    layer normalization.
+
+    Args:
+        d_model (int): number of internal features
+        n (int): dimensionality of the state representation
+        l_max (int): length of input signal
+        p_dropout (float): probability of elements being set to zero
+        **kwargs (Keyword Args): Keyword arguments to be passed to
+            ``S4Layer()``.
+
+    """
+
     def __init__(
         self,
         d_model: int,
@@ -36,6 +52,15 @@ class S4Block(nn.Module):
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+
+        Args:
+            u (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_INPUT]``
+
+        Returns:
+            y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
+
+        """
         z = self.pipeline(u)
         return self.norm(z + u)
 
