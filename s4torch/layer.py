@@ -176,7 +176,7 @@ class S4Layer(nn.Module):
         trainable: bool,
     ) -> None:
         if trainable:
-            self.register_parameter(name, param=tensor)
+            self.register_parameter(name, param=nn.Parameter(tensor))
         else:
             self.register_buffer(name, tensor=tensor)
 
