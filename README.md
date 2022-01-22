@@ -7,7 +7,7 @@ by [@srush](https://github.com/srush) and [@siddk](https://github.com/siddk).
 ## Installation
 
 ```sh
-pip install git+git://github.com/TariqAHassan/s4torch@main
+pip install git+git://github.com/TariqAHassan/s4torch
 ```
 
 Requires Python 3.8+.
