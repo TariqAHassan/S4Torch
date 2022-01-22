@@ -3,7 +3,7 @@
     S4 Block
 
 """
-from typing import Any
+from typing import Any, Type
 
 import torch
 from torch import nn
@@ -23,7 +23,7 @@ class S4Block(nn.Module):
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         p_dropout (float): probability of elements being set to zero
-        activation (nn.Module): activation function to use after
+        activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Layer()``.
@@ -36,7 +36,7 @@ class S4Block(nn.Module):
         n: int,
         l_max: int,
         p_dropout: float = 0.0,
-        activation: nn.Module = nn.GELU,
+        activation: Type[nn.Module] = nn.GELU,
         **kwargs: Any,
     ) -> None:
         super().__init__()
