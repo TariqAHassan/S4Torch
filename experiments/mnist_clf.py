@@ -3,6 +3,8 @@
     1D MNIST Classification
 
 """
+from typing import Tuple
+
 import pytorch_lightning as pl
 import torch
 from torch import nn
@@ -35,7 +37,11 @@ class LighteningS4Model(pl.LightningModule):
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         return self.model(u)
 
-    def _step(self, batch: torch.Tensor, validation: bool) -> torch.Tensor:
+    def _step(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        validation: bool,
+    ) -> torch.Tensor:
         x, labels = batch
         logits = self.forward(x.flatten(1).unsqueeze(-1))
         self.log(
@@ -46,10 +52,18 @@ class LighteningS4Model(pl.LightningModule):
         loss = self.loss(logits, target=labels)
         return loss
 
-    def training_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+    def training_step(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        batch_idx: int,
+    ) -> torch.Tensor:
         return self._step(batch, validation=False)
 
-    def validation_step(self, batch: torch.Tensor, batch_idx: int) -> torch.Tensor:
+    def validation_step(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        batch_idx: int,
+    ) -> torch.Tensor:
         return self._step(batch, validation=True)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
