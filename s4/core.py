@@ -1,6 +1,6 @@
 """
 
-    S4 PyTorch
+    S4 Layer
 
 """
 from __future__ import annotations
