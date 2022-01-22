@@ -53,7 +53,7 @@ def _make_nplr_hippo(N: int) -> tuple[np.ndarray, ...]:
     return lambda_, p, q, V
 
 
-def _make_s4_buffers(n: int) -> list[torch.Tensor]:
+def _make_buffers(n: int) -> list[torch.Tensor]:
     lambda_, p, q, V = _make_nplr_hippo(n)
     Vc = V.conj().T
     p = Vc @ p
@@ -156,7 +156,7 @@ class S4Layer(nn.Module):
         self.train_q = train_q
         self.train_lambda = train_lambda
 
-        p, q, lambda_ = _make_s4_buffers(n)
+        p, q, lambda_ = _make_buffers(n)
         self._register_tensor("p", tensor=p, trainable=train_p)
         self._register_tensor("q", tensor=q, trainable=train_q)
         self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda)
