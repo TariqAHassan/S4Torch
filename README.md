@@ -1,7 +1,8 @@
 # S4 Torch
 
 A PyTorch implementation of [Structured State Space for Sequence Modeling (S4)](https://arxiv.org/abs/2111.00396), 
-based on [Annotated S4](https://srush.github.io/annotated-s4/).
+based on the beautiful [Annotated S4](https://srush.github.io/annotated-s4/) blog post
+by [@srush](https://github.com/srush) and [@siddk](https://github.com/siddk).
 
 ## Installation
 
@@ -80,3 +81,21 @@ u = torch.randn((1, l_max, d_model)).float()
 s4block = S4Block(d_model, n=N, l_max=l_max)
 assert s4block(u).shape == u.shape
 ```
+
+## References
+
+The S4 model was developed by Albert Gu, Karan Goel, and Christopher Ré. 
+If you find this repository useful, please cite their (extremely impressive) paper:
+
+```bibtex
+@misc{gu2021efficiently,
+    title={Efficiently Modeling Long Sequences with Structured State Spaces}, 
+    author={Albert Gu and Karan Goel and Christopher Ré},
+    year={2021},
+    eprint={2111.00396},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
+```
+
+Also consider checking out their fanstic repository at [github.com/HazyResearch/state-spaces](https://github.com/HazyResearch/state-spaces).
