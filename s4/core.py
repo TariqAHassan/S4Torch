@@ -81,32 +81,29 @@ def _k_gen_dplr(
     Ct: torch.Tensor,
     step: torch.Tensor,
 ) -> Callable[[torch.Tensor], torch.Tensor]:
-    a_term = Ct.conj(), q.conj()
-    b_term = B.T, p
+    a0, a1 = Ct.conj(), q.conj()
+    b0, b1 = B, p
 
-    def gen(o: torch.Tensor) -> torch.Tensor:
-        g = torch.outer(2.0 / step, (1.0 - o) / (1.0 + o))
-        c = 2.0 / (1.0 + o)
+    def gen(omega: torch.Tensor) -> torch.Tensor:
+        g = torch.outer(2.0 / step, (1.0 - omega) / (1.0 + omega))
+        c = 2.0 / (1.0 + omega)
 
-        def k(a: torch.Tensor) -> torch.Tensor:
-            return _cauchy_dot(a, g=g, lambd=Lambda)
-
-        k00 = k(a_term[0] * b_term[0])
-        k01 = k(a_term[0] * b_term[1])
-        k10 = k(a_term[1] * b_term[0])
-        k11 = k(a_term[1] * b_term[1])
+        k00 = _cauchy_dot(a0 * b0, g=g, lambd=Lambda)
+        k01 = _cauchy_dot(a0 * b1, g=g, lambd=Lambda)
+        k10 = _cauchy_dot(a1 * b0, g=g, lambd=Lambda)
+        k11 = _cauchy_dot(a1 * b1, g=g, lambd=Lambda)
         return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
 
     return gen
 
 
 def _conv_from_gen(
+    omega_l: torch.Tensor,
     k_gen: Callable[[torch.Tensor], torch.Tensor],
     L: int,
 ) -> torch.Tensor:
-    Omega_L = torch.from_numpy(np.exp((2j * np.pi / L) * np.arange(L)))
-    atRoots = k_gen(Omega_L)
-    out = torch.fft.ifft(atRoots, n=L, dim=-1)
+    at_roots = k_gen(omega_l)
+    out = torch.fft.ifft(at_roots, n=L, dim=-1)
     order = torch.as_tensor(
         [i if i == 0 else L - i for i in range(L)],
         dtype=torch.long,
@@ -127,6 +124,7 @@ class S4Layer(nn.Module):
     p: torch.Tensor
     q: torch.Tensor
     lmbda: torch.Tensor
+    omega_l: torch.Tensor
 
     def __init__(self, n: int, d_model: int, l_max: int) -> None:
         super().__init__()
@@ -134,14 +132,16 @@ class S4Layer(nn.Module):
         self.d_model = d_model
         self.l_max = l_max
 
-        # Buffers
         p, q, lmbda = _make_s4_buffers(n)
         self.register_buffer("p", p)
         self.register_buffer("q", q)
         self.register_buffer("lmbda", lmbda)
+        self.register_buffer(
+            "omega_l",
+            torch.from_numpy(np.exp((2j * np.pi / self.l_max) * np.arange(self.l_max))),
+        )
 
-        # Parameters
-        self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)))
+        self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)).T)
         self.Ct = nn.Parameter(init.xavier_normal_(torch.empty(d_model, n)))
         self.D = nn.Parameter(torch.ones(d_model))[None, None, ...]
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
@@ -156,7 +156,7 @@ class S4Layer(nn.Module):
             Ct=self.Ct,
             step=self.log_step.exp(),
         )
-        return _conv_from_gen(k_gen, L=self.l_max).unsqueeze(0)
+        return _conv_from_gen(self.omega_l, k_gen=k_gen, L=self.l_max).unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         skip = (self.D * u).transpose(-2, -1)
