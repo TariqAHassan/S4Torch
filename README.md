@@ -59,7 +59,7 @@ u = torch.randn((1, l_max, d_model))
 s4_layer = S4Layer(d_model, n=N, l_max=l_max)
 ```
 
-#### Block
+### Block
 
 The `S4Block()` embeds `S4Layer()` in a common-place processing "pipeline",
 with a `GELU()` activation, dropout, linear layer and layer normalization.
