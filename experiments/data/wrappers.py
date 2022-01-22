@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
-from experiments.datasets import SpeechCommandsDataset10
+from experiments.data.datasets import SpeechCommandsDataset10
 
 
 def _train_val_split(
@@ -39,12 +39,12 @@ class DatasetWrapper:
         val_prop: float = 0.1,
         seed: int = 42,
     ) -> None:
-        self.dataset = dataset(self.root_dir)
+        self.dataset = dataset(self.root_dir)   # noqa
         self.val_prop = val_prop
         self.seed = seed
 
         self.dataset_train, self.dataset_val = _train_val_split(
-            self.dataset,  # noqa
+            self.dataset,
             val_prop=val_prop,
             seed=seed,
         )
@@ -136,7 +136,7 @@ class SpeechCommand10Wrapper(DatasetWrapper):
 
 if __name__ == "__main__":
     mnist_wrapper = MnistWrapper()
-    train_dl, val_dl = self.get_dataloaders(8)
+    train_dl, val_dl = mnist_wrapper.get_dataloaders(8)
 
     assert isinstance(train_dl, DataLoader)
     assert isinstance(val_dl, DataLoader)
