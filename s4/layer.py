@@ -124,7 +124,7 @@ class S4Layer(nn.Module):
         l_max: int,
         train_p: bool = False,
         train_q: bool = False,
-        train_lambda_: bool = False,
+        train_lambda: bool = False,
     ) -> None:
         super().__init__()
         self.n = n
@@ -132,12 +132,12 @@ class S4Layer(nn.Module):
         self.l_max = l_max
         self.train_p = train_p
         self.train_q = train_q
-        self.train_lambda_ = train_lambda_
+        self.train_lambda = train_lambda
 
         p, q, lambda_ = _make_s4_buffers(n)
         self._register_tensor("p", tensor=p, trainable=train_p)
         self._register_tensor("q", tensor=q, trainable=train_q)
-        self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda_)
+        self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda)
         self._register_tensor(
             "omega_l",
             tensor=_make_omega_l(self.l_max),
