@@ -117,7 +117,7 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
 
     ud = torch.fft.rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
     Kd = torch.fft.rfft(F.pad(K, pad=(0, l_max)), dim=-1)
-    return torch.fft.irfft(ud.transpose(-2, -1) * Kd)[..., :l_max]
+    return torch.fft.irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
 
 
 class S4Layer(nn.Module):
@@ -159,8 +159,7 @@ class S4Layer(nn.Module):
         return _conv_from_gen(self.omega_l, k_gen=k_gen).unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
-        skip = (self.D * u).transpose(-2, -1)
-        return _non_circular_convolution(u, K=self.K) + skip
+        return _non_circular_convolution(u, K=self.K) + (self.D * u)
 
 
 if __name__ == "__main__":
@@ -176,4 +175,4 @@ if __name__ == "__main__":
         l_max=l_max,
     )
     out = self(u)
-    assert out.shape == (u.shape[0], *u.shape[1:][::-1])
+    assert out.shape == u.shape
