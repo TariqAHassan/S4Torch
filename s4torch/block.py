@@ -23,6 +23,8 @@ class S4Block(nn.Module):
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         p_dropout (float): probability of elements being set to zero
+        activation (nn.Module): activation function to use after
+            ``S4Layer()``
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Layer()``.
 
@@ -34,17 +36,19 @@ class S4Block(nn.Module):
         n: int,
         l_max: int,
         p_dropout: float = 0.0,
+        activation: nn.Module = nn.GELU,
         **kwargs: Any,
     ) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
+        self.activation = activation
         self.p_dropout = p_dropout
 
         self.pipeline = nn.Sequential(
             S4Layer(d_model, n=n, l_max=l_max, **kwargs),
-            nn.GELU(),
+            activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
             nn.Dropout(p_dropout),
