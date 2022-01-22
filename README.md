@@ -2,3 +2,81 @@
 
 A PyTorch implementation of [Structured State Space for Sequence Modeling (S4)](https://arxiv.org/abs/2111.00396), 
 based on [Annotated S4](https://srush.github.io/annotated-s4/).
+
+## Installation
+
+```sh
+pip install git+git://github.com/TariqAHassan/s4torch@main
+```
+
+Requires Python 3.7+.
+
+## Quick Start
+
+The `S4Model()` provides a high-level implementation of the S4 model.
+A simple example is provided below.
+
+```python
+import torch
+from s4torch import S4Model
+
+N = 32
+d_input = 1
+d_model = 128
+d_output = 128
+l_max = 784
+
+u = torch.randn((1, l_max, d_input)).float()
+
+s4model = S4Model(
+    d_input,
+    d_model=d_model,
+    d_output=d_output,
+    n_layers=3,
+    n=N,
+    l_max=l_max,
+    collapse=False,  # if `True` average predictions over time
+)
+assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
+```
+
+### Layers and Blocks
+
+### Layer
+
+The `S4Layer()` implements the core logic of S4.
+
+```python
+import torch
+from s4torch import S4Layer
+
+N = 32
+d_model = 128
+l_max = 784
+
+u = torch.randn((1, l_max, d_model))
+
+s4_layer = S4Layer(d_model, n=N, l_max=l_max)
+```
+
+#### Block
+
+The `S4Block()` embeds `S4Layer()` in a common-place processing "pipeline",
+with a `GELU()` activation, dropout, linear layer and layer normalization.
+(The `S4Model()`, above, is composed of these blocks.)
+
+```python
+import torch
+from s4torch import S4Block
+
+N = 32
+d_input = 1
+d_model = 128
+d_output = 128
+l_max = 784
+
+u = torch.randn((1, l_max, d_model)).float()
+
+s4block = S4Block(d_model, n=N, l_max=l_max)
+assert s4block(u).shape == u.shape
+```
