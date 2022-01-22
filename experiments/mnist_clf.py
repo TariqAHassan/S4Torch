@@ -26,7 +26,7 @@ class LighteningS4Model(pl.LightningModule):
             d_input=1,
             d_model=128,
             d_output=n_classes,
-            n_blocks=3,  # ToDo: increase
+            n_blocks=6,
             n=64,
             l_max=28 * 28,
             collapse=True,
