@@ -12,7 +12,7 @@ from s4torch import S4Model
 
 
 def _compute_acc(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-    return (logits.argmax(dim=-1) == labels).mean()
+    return (logits.argmax(dim=-1) == labels).float().mean()
 
 
 class LighteningS4Model(pl.LightningModule):
