@@ -198,12 +198,7 @@ if __name__ == "__main__":
     d_model = 128
     l_max = 784
 
-    u = torch.ones((1, l_max, d_model))
+    u = torch.randn((1, l_max, d_model))
 
-    self = S4Layer(
-        n=N,
-        d_model=d_model,
-        l_max=l_max,
-    )
-    out = self(u)
-    assert out.shape == u.shape
+    self = S4Layer(N, d_model=d_model, l_max=l_max)
+    assert self(u).shape == u.shape
