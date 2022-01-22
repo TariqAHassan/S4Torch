@@ -58,8 +58,8 @@ seq_len = 784
 
 u = torch.randn(1, seq_len, d_model)
 
-s4_layer = S4Layer(d_model, n=N, l_max=seq_len)
-assert s4_layer(u).shape == u.shape
+s4layer = S4Layer(d_model, n=N, l_max=seq_len)
+assert s4layer(u).shape == u.shape
 ```
 
 ### Block
