@@ -175,7 +175,7 @@ class S4Layer(nn.Module):
     ) -> torch.Tensor:
         at_roots = k_gen(self.omega_l)
         out = ifft(at_roots, n=self.l_max, dim=-1)
-        return torch.stack([i[self.ifft_order] for i in out]).real
+        return torch.stack([i[self.ifft_order] for i in out]).real.float()
 
     @property
     def K(self) -> torch.Tensor:  # noqa
