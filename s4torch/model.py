@@ -17,14 +17,14 @@ class S4Model(nn.Module):
     High-level implementation of the S4 model which:
 
         1. encodes the input using a linear layer
-        2. applies ``1..n_layers`` S4 blocks
+        2. applies ``1..n_blocks`` S4 blocks
         3. decodes the output of 2. using another linear layer
 
     Args:
         d_input (int): number of input features
         d_model (int): number of internal features
         d_output (int): number of features to return
-        n_layers (int): number of S4 layers to construct
+        n_blocks (int): number of S4 layers to construct
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         collapse (bool): if ``True`` average over time prior to
@@ -41,7 +41,7 @@ class S4Model(nn.Module):
         d_input: int,
         d_model: int,
         d_output: int,
-        n_layers: int,
+        n_blocks: int,
         n: int,
         l_max: int,
         collapse: bool = False,
@@ -68,7 +68,7 @@ class S4Model(nn.Module):
                     p_dropout=p_dropout,
                     **kwargs,
                 )
-                for _ in range(n_layers)
+                for _ in range(n_blocks)
             ]
         )
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         d_input,
         d_model=d_model,
         d_output=d_output,
-        n_layers=3,
+        n_blocks=3,
         n=N,
         l_max=l_max,
         collapse=False,
