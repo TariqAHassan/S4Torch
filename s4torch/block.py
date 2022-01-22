@@ -15,7 +15,7 @@ class S4Block(nn.Module):
     """S4 Block.
 
     Applies an ``S4Layer()``, followed by an activation
-    function, dropout, linear layer skip connection and
+    function, dropout, linear layer, skip connection and
     layer normalization.
 
     Args:
