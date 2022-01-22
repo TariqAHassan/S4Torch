@@ -17,6 +17,19 @@ def _compute_acc(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     return (logits.argmax(dim=-1) == labels).float().mean()
 
 
+def _to_sequence(x: torch.Tensor) -> torch.Tensor:
+    if x.ndim == 1:
+        raise IndexError("1D input not supported")
+    elif x.ndim == 2:
+        return x.unsqueeze(-1)
+    elif x.ndim == 3:
+        return x
+    elif x.ndim == 4:
+        return x.flatten(2).transpose(-2, -1)
+    else:
+        raise IndexError(f"Expected 2D, 3D or 4D data, got {x.ndim}D")
+
+
 class LighteningS4Model(pl.LightningModule):
     def __init__(self, n_classes: int) -> None:
         super().__init__()
@@ -43,7 +56,7 @@ class LighteningS4Model(pl.LightningModule):
         validation: bool,
     ) -> torch.Tensor:
         x, labels = batch
-        logits = self.forward(x.flatten(1).unsqueeze(-1))
+        logits = self.forward(_to_sequence(x))
         self.log(
             "val_acc" if validation else "acc",
             _compute_acc(logits.detach(), labels),
