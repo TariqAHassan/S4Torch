@@ -105,8 +105,6 @@ def _k_gen_dplr(
 
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
-    assert K.shape[-1] == l_max
-
     ud = rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
     Kd = rfft(F.pad(K, pad=(0, l_max)), dim=-1)
     return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
