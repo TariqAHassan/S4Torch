@@ -3,10 +3,12 @@
     S4 Model
 
 """
+from typing import Any
+
 import torch
 from torch import nn
+
 from s4.layer import S4Layer
-from typing import Any
 
 
 class S4Block(nn.Module):
