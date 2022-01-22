@@ -74,6 +74,7 @@ def _cauchy_dot(
         v = v.unsqueeze(1)
     elif v.ndim != 3:
         raise IndexError(f"Expected `v` to be 1D, 2D or 3D, got {v.ndim}D")
+
     denom = torch.stack([i - lambd[None, ...] for i in g[..., :, None]])
     return (v / denom).sum(dim=-1)
 
