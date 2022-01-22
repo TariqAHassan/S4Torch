@@ -112,12 +112,12 @@ def _conv_from_gen(
 
 
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
-    seq_len = u.shape[1]
-    assert K.shape[-1] == seq_len
+    l_max = u.shape[1]
+    assert K.shape[-1] == l_max
 
-    ud = torch.fft.rfft(F.pad(u, pad=(0, 0, 0, seq_len, 0, 0)), dim=1)
-    Kd = torch.fft.rfft(F.pad(K, pad=(0, seq_len)), dim=-1)
-    return torch.fft.irfft(ud.transpose(-2, -1) * Kd)[..., :seq_len]
+    ud = torch.fft.rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = torch.fft.rfft(F.pad(K, pad=(0, l_max)), dim=-1)
+    return torch.fft.irfft(ud.transpose(-2, -1) * Kd)[..., :l_max]
 
 
 class S4Layer(nn.Module):
@@ -166,9 +166,9 @@ class S4Layer(nn.Module):
 if __name__ == "__main__":
     N = 32
     d_model = 128
-    seq_len = l_max = 784
+    l_max = 784
 
-    u = torch.ones((1, seq_len, d_model))
+    u = torch.ones((1, l_max, d_model))
 
     self = S4Layer(
         n=N,
