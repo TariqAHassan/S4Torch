@@ -50,7 +50,7 @@ The `S4Layer()` implements the core logic of S4.
 
 ```python
 import torch
-from s4torch import S4Layer
+from s4torch.layer import S4Layer
 
 N = 32
 d_model = 128
@@ -70,7 +70,7 @@ with a `GELU()` activation, dropout, linear layer, skip connection and layer nor
 
 ```python
 import torch
-from s4torch import S4Block
+from s4torch.block import S4Block
 
 N = 32
 d_input = 1
