@@ -75,7 +75,7 @@ if __name__ == "__main__":
     from torch.utils.data import DataLoader, Dataset, random_split
     from torchvision import transforms
 
-    DATA_DIRECTORY = Path("~/Desktop/datasets").expanduser()
+    DATA_DIRECTORY = Path("~/datasets").expanduser()
     DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
     def make_dataloader(dataset: Dataset, shuffle: bool) -> DataLoader:
