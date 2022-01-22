@@ -98,5 +98,5 @@ if __name__ == "__main__":
     pl_s4_model = LighteningS4Model(len(dataset.classes))
 
     # Trainer
-    trainer = pl.Trainer(gpus=1 if torch.cuda.is_available() else None)
+    trainer = pl.Trainer(gpus=torch.cuda.device_count() or None)
     trainer.fit(pl_s4_model, dl_train, dl_val)
