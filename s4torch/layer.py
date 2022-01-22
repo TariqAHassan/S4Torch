@@ -117,9 +117,9 @@ class S4Layer(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        train_p (bool): train the ``p`` tensor
-        train_q (bool): train the ``q`` tensor
-        train_lambda (bool): train the ``lambda`` tensor
+        train_p (bool): if ``True`` train the ``p`` tensor
+        train_q (bool): if ``True`` train the ``q`` tensor
+        train_lambda (bool): if ``True`` train the ``lambda`` tensor
 
     Attributes:
         p (torch.Tensor): ``p`` tensor as buffer if ``train_p=False``,
