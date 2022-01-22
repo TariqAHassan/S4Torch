@@ -38,7 +38,8 @@ class DatasetWrapper:
     Wrapper to standardize different datasets.
 
     Args:
-        dataset (Dataset): a dataset with (data) `root` as the first argument
+        dataset (Type[Dataset]): a dataset with (data) `root` as the
+            first argument
         val_prop (float): proportion of the data to use for validation
         seed (int): seed to use when splitting the data into training
             and validation datasets
@@ -142,7 +143,7 @@ class MnistWrapper(DatasetWrapper):
 
     @property
     def classes(self) -> list[str]:
-        return self.dataset.classes
+        return self.dataset.classes  # noqa
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -162,7 +163,7 @@ class SpeechCommand10Wrapper(DatasetWrapper):
 
     @property
     def classes(self) -> list[str]:
-        return self.dataset.classes
+        return self.dataset.classes  # noqa
 
     @property
     def shape(self) -> tuple[int, ...]:
