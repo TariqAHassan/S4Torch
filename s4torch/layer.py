@@ -84,7 +84,7 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
 
 
-class S4Layer(torch.jit.ScriptModule):
+class S4Layer(nn.Module):
     """S4 Layer.
 
     Structured State Space for (Long) Sequences (S4) layer.
@@ -199,7 +199,6 @@ class S4Layer(torch.jit.ScriptModule):
         conv = torch.stack([i[self.ifft_order] for i in out]).real
         return conv.float().unsqueeze(0)
 
-    @torch.jit.script_method
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
 
