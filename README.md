@@ -100,4 +100,4 @@ If you find this repository useful, please cite their (extremely impressive) pap
 }
 ```
 
-Also consider checking out their fanstic repository at [github.com/HazyResearch/state-spaces](https://github.com/HazyResearch/state-spaces).
+Also consider checking out their fantastic repository at [github.com/HazyResearch/state-spaces](https://github.com/HazyResearch/state-spaces).
