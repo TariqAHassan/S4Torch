@@ -115,6 +115,7 @@ class S4Layer(nn.Module):
     q: torch.Tensor
     lambda_: torch.Tensor
     omega_l: torch.Tensor
+    ifft_order: torch.Tensor
 
     def __init__(
         self,
