@@ -96,6 +96,7 @@ class S4Layer(nn.Module):
         train_p (bool): if ``True`` train the ``p`` tensor
         train_q (bool): if ``True`` train the ``q`` tensor
         train_lambda (bool): if ``True`` train the ``lambda`` tensor
+        complex_dtype (torch.dtype): data type for complex tensors
 
     Attributes:
         p (torch.Tensor): ``p`` tensor as a buffer if ``train_p=False``,
