@@ -65,7 +65,7 @@ assert s4layer(u).shape == u.shape
 ### Block
 
 The `S4Block()` embeds `S4Layer()` in a commonplace processing "pipeline",
-with a `GELU()` activation, dropout, linear layer, skip connection and layer normalization.
+with an activation function, dropout, linear layer, skip connection and layer normalization.
 (`S4Model()`, above, is composed of these blocks.)
 
 ```python
