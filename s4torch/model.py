@@ -27,8 +27,8 @@ class S4Model(nn.Module):
         n_layers (int): number of S4 layers to construct
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        collapse (bool): if ``True`` average results over
-            time prior to decoding the result of the S4 block(s)
+        collapse (bool): if ``True`` average over time prior to
+            decoding the result of the S4 block(s)
         p_dropout (float): probability of elements being set to zero
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Block()``.
