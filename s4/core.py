@@ -102,20 +102,6 @@ def _k_gen_dplr(
     return gen
 
 
-def _conv_from_gen(
-    omega_l: torch.Tensor,
-    k_gen: Callable[[torch.Tensor], torch.Tensor],
-) -> torch.Tensor:
-    L = omega_l.shape[-1]
-    at_roots = k_gen(omega_l)
-    out = ifft(at_roots, n=L, dim=-1)
-    order = torch.as_tensor(
-        [i if i == 0 else L - i for i in range(L)],
-        dtype=torch.long,
-    )
-    return torch.stack([i[order] for i in out]).real
-
-
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
     assert K.shape[-1] == l_max
@@ -158,6 +144,15 @@ class S4Layer(nn.Module):
             trainable=False,
         )
 
+        self._register_tensor(
+            "ifft_order",
+            tensor=torch.as_tensor(
+                [i if i == 0 else self.l_max - i for i in range(self.l_max)],
+                dtype=torch.long,
+            ),
+            trainable=False,
+        )
+
         self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)).T)
         self.Ct = nn.Parameter(init.xavier_normal_(torch.empty(d_model, n)))
         self.D = nn.Parameter(torch.ones(d_model))[None, None, ...]
@@ -174,6 +169,14 @@ class S4Layer(nn.Module):
         else:
             self.register_buffer(name, tensor=tensor)
 
+    def _conv_from_gen(
+        self,
+        k_gen: Callable[[torch.Tensor], torch.Tensor],
+    ) -> torch.Tensor:
+        at_roots = k_gen(self.omega_l)
+        out = ifft(at_roots, n=self.l_max, dim=-1)
+        return torch.stack([i[self.ifft_order] for i in out]).real
+
     @property
     def K(self) -> torch.Tensor:  # noqa
         k_gen = _k_gen_dplr(
@@ -184,7 +187,7 @@ class S4Layer(nn.Module):
             Ct=self.Ct,
             step=self.log_step.exp(),
         )
-        return _conv_from_gen(self.omega_l, k_gen=k_gen).unsqueeze(0)
+        return self._conv_from_gen(k_gen).unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         return _non_circular_convolution(u, K=self.K) + (self.D * u)
