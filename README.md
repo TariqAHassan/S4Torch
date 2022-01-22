@@ -25,9 +25,9 @@ N = 32
 d_input = 1
 d_model = 128
 d_output = 128
-l_max = 784
+seq_len = 784
 
-u = torch.randn((1, l_max, d_input))
+u = torch.randn((1, seq_len, d_input))
 
 s4model = S4Model(
     d_input,
@@ -35,7 +35,7 @@ s4model = S4Model(
     d_output=d_output,
     n_layers=3,
     n=N,
-    l_max=l_max,
+    l_max=seq_len,
     collapse=False,  # if `True` average predictions over time
 )
 assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
@@ -53,11 +53,11 @@ from s4torch import S4Layer
 
 N = 32
 d_model = 128
-l_max = 784
+seq_len = 784
 
-u = torch.randn((1, l_max, d_model))
+u = torch.randn((1, seq_len, d_model))
 
-s4_layer = S4Layer(d_model, n=N, l_max=l_max)
+s4_layer = S4Layer(d_model, n=N, l_max=seq_len)
 assert s4_layer(u).shape == u.shape
 ```
 
@@ -75,11 +75,11 @@ N = 32
 d_input = 1
 d_model = 128
 d_output = 128
-l_max = 784
+seq_len = 784
 
-u = torch.randn((1, l_max, d_model)).float()
+u = torch.randn((1, seq_len, d_model)).float()
 
-s4block = S4Block(d_model, n=N, l_max=l_max)
+s4block = S4Block(d_model, n=N, l_max=seq_len)
 assert s4block(u).shape == u.shape
 ```
 
