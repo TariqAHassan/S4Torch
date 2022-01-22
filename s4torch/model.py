@@ -60,7 +60,7 @@ class S4Model(nn.Module):
 
         self.encoder = nn.Linear(self.d_input, self.d_model)
         self.decoder = nn.Linear(self.d_model, self.d_output)
-        self.layers = nn.ModuleList(
+        self.blocks = nn.ModuleList(
             [
                 S4Block(
                     d_model=d_model,
@@ -84,8 +84,8 @@ class S4Model(nn.Module):
 
         """
         y = self.encoder(u)
-        for layer in self.layers:
-            y = layer(y)
+        for block in self.blocks:
+            y = block(y)
         return self.decoder(y.mean(dim=1) if self.collapse else y)
 
 
