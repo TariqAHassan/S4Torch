@@ -66,7 +66,7 @@ assert s4layer(u).shape == u.shape
 
 The `S4Block()` embeds `S4Layer()` in a common-place processing "pipeline",
 with a `GELU()` activation, dropout, linear layer, skip connection and layer normalization.
-(The `S4Model()`, above, is composed of these blocks.)
+(`S4Model()`, above, is composed of these blocks.)
 
 ```python
 import torch
