@@ -80,7 +80,9 @@ class S4Model(nn.Module):
             u (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_INPUT]``
 
         Returns:
-            y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
+            y (torch.Tensor): a tensor of the form ``[BATCH, D_OUTPUT]``
+                if ``collapse`` is ``True`` and ``[BATCH, SEQ_LEN, D_INPUT]``
+                otherwise.
 
         """
         y = self.encoder(u)
