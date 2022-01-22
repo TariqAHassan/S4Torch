@@ -51,16 +51,16 @@ def _make_nplr_hippo(N: int) -> tuple[np.ndarray, ...]:
     q = 2 * p
     S = nhippo + p[:, np.newaxis] * q[np.newaxis, :]
 
-    lmbda, V = np.linalg.eig(S)
-    return lmbda, p, q, V
+    lambda_, V = np.linalg.eig(S)
+    return lambda_, p, q, V
 
 
 def _make_s4_buffers(n: int) -> list[torch.Tensor]:
-    lmbda, p, q, V = _make_nplr_hippo(n)
+    lambda_, p, q, V = _make_nplr_hippo(n)
     Vc = V.conj().T
     p = Vc @ p
     q = Vc @ q.conj()
-    return [torch.from_numpy(i) for i in (p, q, lmbda)]
+    return [torch.from_numpy(i) for i in (p, q, lambda_)]
 
 
 def _cauchy_dot(
@@ -79,7 +79,7 @@ def _cauchy_dot(
 
 
 def _k_gen_dplr(
-    Lambda: torch.Tensor,
+    lambda_: torch.Tensor,
     p: torch.Tensor,
     q: torch.Tensor,
     B: torch.Tensor,
@@ -93,10 +93,10 @@ def _k_gen_dplr(
         g = torch.outer(2.0 / step, (1.0 - omega) / (1.0 + omega))
         c = 2.0 / (1.0 + omega)
 
-        k00 = _cauchy_dot(a0 * b0, g=g, lambd=Lambda)
-        k01 = _cauchy_dot(a0 * b1, g=g, lambd=Lambda)
-        k10 = _cauchy_dot(a1 * b0, g=g, lambd=Lambda)
-        k11 = _cauchy_dot(a1 * b1, g=g, lambd=Lambda)
+        k00 = _cauchy_dot(a0 * b0, g=g, lambd=lambda_)
+        k01 = _cauchy_dot(a0 * b1, g=g, lambd=lambda_)
+        k10 = _cauchy_dot(a1 * b0, g=g, lambd=lambda_)
+        k11 = _cauchy_dot(a1 * b1, g=g, lambd=lambda_)
         return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
 
     return gen
@@ -114,7 +114,7 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
 class S4Layer(nn.Module):
     p: torch.Tensor
     q: torch.Tensor
-    lmbda: torch.Tensor
+    lambda_: torch.Tensor
     omega_l: torch.Tensor
 
     def __init__(
@@ -124,7 +124,7 @@ class S4Layer(nn.Module):
         l_max: int,
         train_p: bool = False,
         train_q: bool = False,
-        train_lmbda: bool = False,
+        train_lambda_: bool = False,
     ) -> None:
         super().__init__()
         self.n = n
@@ -132,12 +132,12 @@ class S4Layer(nn.Module):
         self.l_max = l_max
         self.train_p = train_p
         self.train_q = train_q
-        self.train_lmbda = train_lmbda
+        self.train_lambda_ = train_lambda_
 
-        p, q, lmbda = _make_s4_buffers(n)
+        p, q, lambda_ = _make_s4_buffers(n)
         self._register_tensor("p", tensor=p, trainable=train_p)
         self._register_tensor("q", tensor=q, trainable=train_q)
-        self._register_tensor("lmbda", tensor=lmbda, trainable=train_lmbda)
+        self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda_)
         self._register_tensor(
             "omega_l",
             tensor=_make_omega_l(self.l_max),
@@ -180,7 +180,7 @@ class S4Layer(nn.Module):
     @property
     def K(self) -> torch.Tensor:  # noqa
         k_gen = _k_gen_dplr(
-            Lambda=self.lmbda,
+            lambda_=self.lambda_,
             p=self.p,
             q=self.q,
             B=self.B,
