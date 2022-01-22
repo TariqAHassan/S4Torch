@@ -37,7 +37,7 @@ s4model = S4Model(
     n_blocks=n_blocks,
     n=N,
     l_max=seq_len,
-    collapse=False,  # if `True` average predictions over time
+    collapse=False,  # if `True` average predictions over time prior to decoding
 )
 assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 ```
