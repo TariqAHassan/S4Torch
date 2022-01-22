@@ -129,7 +129,7 @@ class S4Layer(nn.Module):
         lambda_ (torch.Tensor): ``lambda_`` tensor as buffer if ``train_p=False``,
             else else a parameter
         omega_l (torch.Tensor): omega tensor (of length ``l_max``) used to obtain ``K``.
-        ifft_order (torch.Tensor): reordering for outputs of ``torch.fft.ifft()``.
+        ifft_order (torch.Tensor): (re)ordering for outputs of ``torch.fft.ifft()``.
 
     """
 
