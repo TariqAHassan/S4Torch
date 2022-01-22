@@ -24,6 +24,10 @@ def _log_step_initializer(
     return tensor * scale + np.log(dt_min)
 
 
+def _make_omega_l(l_max: int) -> torch.Tensor:
+    return torch.arange(l_max).type(torch.complex128).mul(2j * np.pi / l_max).exp()
+
+
 def _make_hippo(N: int) -> np.ndarray:
     def idx2value(n: int, k: int) -> int | float:
         if n > k:
@@ -150,7 +154,7 @@ class S4Layer(nn.Module):
         self._register_tensor("lmbda", tensor=lmbda, trainable=train_lmbda)
         self._register_tensor(
             "omega_l",
-            torch.from_numpy(np.exp((2j * np.pi / self.l_max) * np.arange(self.l_max))),
+            tensor=_make_omega_l(self.l_max),
             trainable=False,
         )
 
