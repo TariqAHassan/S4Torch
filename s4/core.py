@@ -10,6 +10,7 @@ from typing import Callable
 import numpy as np
 import torch
 from torch import nn
+from torch.fft import ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
 
@@ -103,7 +104,7 @@ def _conv_from_gen(
 ) -> torch.Tensor:
     L = omega_l.shape[-1]
     at_roots = k_gen(omega_l)
-    out = torch.fft.ifft(at_roots, n=L, dim=-1)
+    out = ifft(at_roots, n=L, dim=-1)
     order = torch.as_tensor(
         [i if i == 0 else L - i for i in range(L)],
         dtype=torch.long,
@@ -115,9 +116,9 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
     assert K.shape[-1] == l_max
 
-    ud = torch.fft.rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
-    Kd = torch.fft.rfft(F.pad(K, pad=(0, l_max)), dim=-1)
-    return torch.fft.irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
+    ud = rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = rfft(F.pad(K, pad=(0, l_max)), dim=-1)
+    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
 
 
 class S4Layer(nn.Module):
