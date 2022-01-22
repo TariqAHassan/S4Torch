@@ -25,6 +25,7 @@ N = 32
 d_input = 1
 d_model = 128
 d_output = 128
+n_blocks = 3
 seq_len = 784
 
 u = torch.randn((1, seq_len, d_input))
@@ -33,7 +34,7 @@ s4model = S4Model(
     d_input,
     d_model=d_model,
     d_output=d_output,
-    n_layers=3,
+    n_blocks=n_blocks,
     n=N,
     l_max=seq_len,
     collapse=False,  # if `True` average predictions over time
