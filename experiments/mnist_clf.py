@@ -7,6 +7,7 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 from torchvision.datasets import MNIST
+
 from s4torch import S4Model
 
 
@@ -69,9 +70,10 @@ class LighteningS4Model(pl.LightningModule):
 
 if __name__ == "__main__":
     import os
-    from torchvision import transforms
     from multiprocessing import cpu_count
-    from torch.utils.data import Dataset, DataLoader, random_split
+
+    from torch.utils.data import DataLoader, Dataset, random_split
+    from torchvision import transforms
 
     def make_dataloader(dataset: Dataset, shuffle: bool) -> DataLoader:
         return DataLoader(
