@@ -14,7 +14,7 @@ def _get_requirements() -> List[str]:
 
 
 setup(
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=["tests", "experiments"]),
     install_requires=_get_requirements(),
     classifiers=[
         "Development Status :: 4 - Beta",
