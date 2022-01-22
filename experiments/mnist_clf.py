@@ -39,7 +39,7 @@ class LighteningS4Model(pl.LightningModule):
         logits = self.forward(x.flatten(1).unsqueeze(-1))
         self.log(
             "val_acc" if validation else "acc",
-            _compute_acc(logits, labels),
+            _compute_acc(logits.detach(), labels),
             prog_bar=True,
         )
         loss = self.loss(logits, target=labels)
