@@ -3,9 +3,7 @@
     S4 Layer
 
 """
-from __future__ import annotations
-
-from typing import Callable
+from typing import Callable, Union
 
 import numpy as np
 import torch
@@ -29,7 +27,7 @@ def _make_omega_l(l_max: int) -> torch.Tensor:
 
 
 def _make_hippo(N: int) -> np.ndarray:
-    def idx2value(n: int, k: int) -> int | float:
+    def idx2value(n: int, k: int) -> Union[int, float]:
         if n > k:
             return np.sqrt(2 * n + 1) * np.sqrt(2 * k + 1)
         elif n == k:
