@@ -28,7 +28,8 @@ class S4Model(nn.Module):
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         collapse (bool): if ``True`` average over time prior to
-            decoding the result of the S4 block(s)
+            decoding the result of the S4 block(s). (Useful for
+            classification tasks.)
         p_dropout (float): probability of elements being set to zero
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Block()``.
