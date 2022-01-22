@@ -3,7 +3,7 @@
     S4 Block
 
 """
-from typing import Any, Optional
+from typing import Any
 
 import torch
 from torch import nn
@@ -23,8 +23,8 @@ class S4Block(nn.Module):
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         p_dropout (float): probability of elements being set to zero
-        activation (nn.Module, optional): activation function to use after
-            ``S4Layer()``. Defaults to ``nn.GELU()`` if ``None``.
+        activation (nn.Module): activation function to use after
+            ``S4Layer()``.
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Layer()``.
 
@@ -36,7 +36,7 @@ class S4Block(nn.Module):
         n: int,
         l_max: int,
         p_dropout: float = 0.0,
-        activation: Optional[nn.Module] = None,
+        activation: nn.Module = nn.GELU,
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -48,7 +48,7 @@ class S4Block(nn.Module):
 
         self.pipeline = nn.Sequential(
             S4Layer(d_model, n=n, l_max=l_max, **kwargs),
-            (activation or nn.GELU)(),
+            activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
             nn.Dropout(p_dropout),
