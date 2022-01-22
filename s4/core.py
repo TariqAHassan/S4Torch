@@ -127,25 +127,48 @@ class S4Layer(nn.Module):
     lmbda: torch.Tensor
     omega_l: torch.Tensor
 
-    def __init__(self, n: int, d_model: int, l_max: int) -> None:
+    def __init__(
+        self,
+        n: int,
+        d_model: int,
+        l_max: int,
+        train_p: bool = False,
+        train_q: bool = False,
+        train_lmbda: bool = False,
+    ) -> None:
         super().__init__()
         self.n = n
         self.d_model = d_model
         self.l_max = l_max
+        self.train_p = train_p
+        self.train_q = train_q
+        self.train_lmbda = train_lmbda
 
         p, q, lmbda = _make_s4_buffers(n)
-        self.register_buffer("p", p)
-        self.register_buffer("q", q)
-        self.register_buffer("lmbda", lmbda)
-        self.register_buffer(
+        self._register_tensor("p", tensor=p, trainable=train_p)
+        self._register_tensor("q", tensor=q, trainable=train_q)
+        self._register_tensor("lmbda", tensor=lmbda, trainable=train_lmbda)
+        self._register_tensor(
             "omega_l",
             torch.from_numpy(np.exp((2j * np.pi / self.l_max) * np.arange(self.l_max))),
+            trainable=False,
         )
 
         self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)).T)
         self.Ct = nn.Parameter(init.xavier_normal_(torch.empty(d_model, n)))
         self.D = nn.Parameter(torch.ones(d_model))[None, None, ...]
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
+
+    def _register_tensor(
+        self,
+        name: str,
+        tensor: torch.Tensor,
+        trainable: bool,
+    ) -> None:
+        if trainable:
+            self.register_parameter(name, param=tensor)
+        else:
+            self.register_buffer(name, tensor=tensor)
 
     @property
     def K(self) -> torch.Tensor:  # noqa
