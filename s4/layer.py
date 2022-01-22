@@ -119,16 +119,16 @@ class S4Layer(nn.Module):
 
     def __init__(
         self,
-        n: int,
         d_model: int,
+        n: int,
         l_max: int,
         train_p: bool = False,
         train_q: bool = False,
         train_lambda: bool = False,
     ) -> None:
         super().__init__()
-        self.n = n
         self.d_model = d_model
+        self.n = n
         self.l_max = l_max
         self.train_p = train_p
         self.train_q = train_q
@@ -200,5 +200,5 @@ if __name__ == "__main__":
 
     u = torch.randn((1, l_max, d_model))
 
-    self = S4Layer(N, d_model=d_model, l_max=l_max)
+    self = S4Layer(d_model, n=N, l_max=l_max)
     assert self(u).shape == u.shape
