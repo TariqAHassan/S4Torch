@@ -69,11 +69,14 @@ class LighteningS4Model(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    import os
     from multiprocessing import cpu_count
+    from pathlib import Path
 
     from torch.utils.data import DataLoader, Dataset, random_split
     from torchvision import transforms
+
+    DATA_DIRECTORY = Path("~/Desktop/datasets").expanduser()
+    DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
     def make_dataloader(dataset: Dataset, shuffle: bool) -> DataLoader:
         return DataLoader(
@@ -86,7 +89,7 @@ if __name__ == "__main__":
 
     # Dataset
     dataset = MNIST(
-        os.getcwd(),
+        str(DATA_DIRECTORY),
         download=True,
         transform=transforms.ToTensor(),
     )
