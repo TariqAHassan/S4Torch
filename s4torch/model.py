@@ -97,7 +97,7 @@ if __name__ == "__main__":
     n_blocks = 3
     l_max = 784
 
-    u = torch.randn((1, l_max, d_input))
+    u = torch.randn(1, l_max, d_input)
 
     s4model = S4Model(
         d_input,

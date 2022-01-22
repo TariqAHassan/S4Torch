@@ -28,7 +28,7 @@ d_output = 128
 n_blocks = 3
 seq_len = 784
 
-u = torch.randn((1, seq_len, d_input))
+u = torch.randn(1, seq_len, d_input)
 
 s4model = S4Model(
     d_input,
@@ -56,7 +56,7 @@ N = 32
 d_model = 128
 seq_len = 784
 
-u = torch.randn((1, seq_len, d_model))
+u = torch.randn(1, seq_len, d_model)
 
 s4_layer = S4Layer(d_model, n=N, l_max=seq_len)
 assert s4_layer(u).shape == u.shape
@@ -78,7 +78,7 @@ d_model = 128
 d_output = 128
 seq_len = 784
 
-u = torch.randn((1, seq_len, d_model)).float()
+u = torch.randn(1, seq_len, d_model)
 
 s4block = S4Block(d_model, n=N, l_max=seq_len)
 assert s4block(u).shape == u.shape
