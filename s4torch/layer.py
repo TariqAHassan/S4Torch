@@ -3,7 +3,7 @@
     S4 Layer
 
 """
-from typing import Callable, Union
+from typing import Union
 
 import numpy as np
 import torch
@@ -77,30 +77,6 @@ def _cauchy_dot(
     return (v / denom).sum(dim=-1)
 
 
-def _k_gen_dplr(
-    lambda_: torch.Tensor,
-    p: torch.Tensor,
-    q: torch.Tensor,
-    B: torch.Tensor,
-    Ct: torch.Tensor,
-    step: torch.Tensor,
-) -> Callable[[torch.Tensor], torch.Tensor]:
-    a0, a1 = Ct.conj(), q.conj()
-    b0, b1 = B, p
-
-    def gen(omega: torch.Tensor) -> torch.Tensor:
-        g = torch.outer(2.0 / step, (1.0 - omega) / (1.0 + omega))
-        c = 2.0 / (1.0 + omega)
-
-        k00 = _cauchy_dot(a0 * b0, g=g, lambd=lambda_)
-        k01 = _cauchy_dot(a0 * b1, g=g, lambd=lambda_)
-        k10 = _cauchy_dot(a1 * b0, g=g, lambd=lambda_)
-        k11 = _cauchy_dot(a1 * b1, g=g, lambd=lambda_)
-        return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
-
-    return gen
-
-
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
     ud = rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
@@ -108,7 +84,7 @@ def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
 
 
-class S4Layer(nn.Module):
+class S4Layer(torch.jit.ScriptModule):
     """S4 Layer.
 
     Structured State Space for (Long) Sequences (S4) layer.
@@ -201,27 +177,29 @@ class S4Layer(nn.Module):
         else:
             self.register_buffer(name, tensor=tensor)
 
-    def _conv_from_gen(
-        self,
-        k_gen: Callable[[torch.Tensor], torch.Tensor],
-    ) -> torch.Tensor:
-        at_roots = k_gen(self.omega_l)
-        out = ifft(at_roots, n=self.l_max, dim=-1)
-        return torch.stack([i[self.ifft_order] for i in out]).real.float()
+    def _compute_roots(self) -> torch.Tensor:
+        a0, a1 = self.Ct.conj(), self.q.conj()
+        b0, b1 = self.B, self.p
+        step = self.log_step.exp()
+
+        g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
+        c = 2.0 / (1.0 + self.omega_l)
+
+        k00 = _cauchy_dot(a0 * b0, g=g, lambd=self.lambda_)
+        k01 = _cauchy_dot(a0 * b1, g=g, lambd=self.lambda_)
+        k10 = _cauchy_dot(a1 * b0, g=g, lambd=self.lambda_)
+        k11 = _cauchy_dot(a1 * b1, g=g, lambd=self.lambda_)
+        return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
 
     @property
     def K(self) -> torch.Tensor:  # noqa
         """K convolutional filter."""
-        k_gen = _k_gen_dplr(
-            lambda_=self.lambda_,
-            p=self.p,
-            q=self.q,
-            B=self.B,
-            Ct=self.Ct,
-            step=self.log_step.exp(),
-        )
-        return self._conv_from_gen(k_gen).unsqueeze(0)
+        at_roots = self._compute_roots()
+        out = ifft(at_roots, n=self.l_max, dim=-1)
+        conv = torch.stack([i[self.ifft_order] for i in out]).real
+        return conv.float().unsqueeze(0)
 
+    @torch.jit.script_method
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
 
