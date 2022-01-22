@@ -180,6 +180,16 @@ class S4Layer(nn.Module):
         self.D = nn.Parameter(torch.ones(d_model))[None, None, ...]
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
+    def extra_repr(self) -> str:
+        return (
+            f"d_model={self.d_model}, "
+            f"n={self.n}, "
+            f"l_max={self.l_max}, "
+            f"train_p={self.train_p}, "
+            f"train_q={self.train_q}, "
+            f"train_lambda={self.train_lambda}"
+        )
+
     def _register_tensor(
         self,
         name: str,
