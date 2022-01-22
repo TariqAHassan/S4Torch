@@ -18,7 +18,7 @@ class S4Model(nn.Module):
 
         1. encodes the input using a linear layer
         2. applies ``1..n_blocks`` S4 blocks
-        3. decodes the output of 2. using another linear layer
+        3. decodes the output of step 2 using another linear layer
 
     Args:
         d_input (int): number of input features
