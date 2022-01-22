@@ -52,6 +52,7 @@ class S4Model(nn.Module):
         self.d_input = d_input
         self.d_model = d_model
         self.d_output = d_output
+        self.n_blocks = n_blocks
         self.n = n
         self.l_max = l_max
         self.collapse = collapse
