@@ -177,7 +177,7 @@ class S4Layer(nn.Module):
 
         self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)).T)
         self.Ct = nn.Parameter(init.xavier_normal_(torch.empty(d_model, n)))
-        self.D = nn.Parameter(torch.ones(d_model))[None, None, ...]
+        self.D = nn.Parameter(torch.ones(d_model)[None, None, ...])
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
     def extra_repr(self) -> str:
