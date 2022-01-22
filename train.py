@@ -8,7 +8,6 @@ from typing import Tuple
 import pytorch_lightning as pl
 import torch
 from torch import nn
-from torchvision.datasets import MNIST
 
 from s4torch import S4Model
 
@@ -96,37 +95,4 @@ class LighteningS4Model(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    from multiprocessing import cpu_count
-    from pathlib import Path
-
-    from torch.utils.data import DataLoader, Dataset, random_split
-    from torchvision import transforms
-
-    DATA_DIRECTORY = Path("~/datasets").expanduser()
-    DATA_DIRECTORY.mkdir(parents=True, exist_ok=True)
-
-    def make_dataloader(dataset: Dataset, shuffle: bool) -> DataLoader:
-        return DataLoader(
-            dataset,
-            batch_size=16,
-            shuffle=shuffle,
-            num_workers=max(1, cpu_count() - 1),
-            pin_memory=torch.cuda.is_available(),
-        )
-
-    # Dataset
-    dataset = MNIST(
-        str(DATA_DIRECTORY),
-        download=True,
-        transform=transforms.ToTensor(),
-    )
-    dataset_train, dataset_val = random_split(dataset, [55000, 5000])
-    dl_train = make_dataloader(dataset_train, shuffle=True)
-    dl_val = make_dataloader(dataset_val, shuffle=False)
-
-    # Model
-    pl_s4_model = LighteningS4Model(len(dataset.classes))
-
-    # Trainer
-    trainer = pl.Trainer(gpus=torch.cuda.device_count() or None)
-    trainer.fit(pl_s4_model, dl_train, dl_val)
+    pass
