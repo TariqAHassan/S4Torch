@@ -119,7 +119,7 @@ class S4Layer(nn.Module):
         l_max (int): length of input signal
         train_p (bool): train the ``p`` tensor
         train_q (bool): train the ``q`` tensor
-        train_lambda (bool): train the ``Lambda`` tensor
+        train_lambda (bool): train the ``lambda`` tensor
 
     Attributes:
         p (torch.Tensor): ``p`` tensor as buffer if ``train_p=False``,
