@@ -100,8 +100,8 @@ def _k_gen_dplr(
 def _conv_from_gen(
     omega_l: torch.Tensor,
     k_gen: Callable[[torch.Tensor], torch.Tensor],
-    L: int,
 ) -> torch.Tensor:
+    L = omega_l.shape[-1]
     at_roots = k_gen(omega_l)
     out = torch.fft.ifft(at_roots, n=L, dim=-1)
     order = torch.as_tensor(
@@ -156,7 +156,7 @@ class S4Layer(nn.Module):
             Ct=self.Ct,
             step=self.log_step.exp(),
         )
-        return _conv_from_gen(self.omega_l, k_gen=k_gen, L=self.l_max).unsqueeze(0)
+        return _conv_from_gen(self.omega_l, k_gen=k_gen).unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         skip = (self.D * u).transpose(-2, -1)
