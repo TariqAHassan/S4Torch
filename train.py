@@ -159,11 +159,11 @@ def main(
     pooling: Optional[str] = None,
     norm_type: Optional[str] = "layer",
     # Training
+    max_epochs: Optional[int] = None,
     lr: float = 1e-2,
     lr_s4: float = 1e-3,
     min_lr: float = 1e-6,
     weight_decay: float = 0.01,
-    max_epochs: Optional[int] = None,
     swa: bool = False,
     accumulate_grad: int = 1,
     patience: int = 5,
@@ -188,12 +188,12 @@ def main(
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        max_epochs (int, optional): maximum number of epochs to train for
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
         min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
         weight_decay (float): weight decay to use with optimizer. (Ignored
             for parameters which belong to S4 blocks.)
-        max_epochs (int, optional): maximum number of epochs to train for
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
         patience (int): number of epochs with no improvement to wait before
