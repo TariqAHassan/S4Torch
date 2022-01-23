@@ -167,7 +167,7 @@ def main(
     swa: bool = False,
     accumulate_grad: int = 1,
     patience: int = 5,
-    gpus: Optional[int] = None,
+    gpus: int = -1,
     val_prop: float = 0.1,
     seed: int = 1234,
 ) -> None:
@@ -198,7 +198,7 @@ def main(
         accumulate_grad (int): number of batches to accumulate gradient over.
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
-        gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
+        gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
         seed (int): random seed for training
 
@@ -228,7 +228,7 @@ def main(
 
     pl.Trainer(
         max_epochs=max_epochs,
-        gpus=gpus or (torch.cuda.device_count() or None),
+        gpus=(torch.cuda.device_count() or None) if gpus == -1 else gpus,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
     ).fit(
