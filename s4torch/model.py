@@ -108,7 +108,7 @@ class S4Model(nn.Module):
                         p_dropout=p_dropout,
                         **kwargs,
                     ),
-                    nn.Identity() if pooling is None or not pool_ok else pooling,
+                    pooling if pooling and pool_ok else nn.Identity(),
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
