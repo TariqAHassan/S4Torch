@@ -3,7 +3,7 @@
     S4 Block
 
 """
-from typing import Any, Type
+from typing import Any, Optional, Type
 
 import torch
 from torch import nn
@@ -25,6 +25,8 @@ class S4Block(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Layer()``.
 
@@ -37,6 +39,7 @@ class S4Block(nn.Module):
         l_max: int,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
+        norm_type: Optional[str] = "layer",
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -44,6 +47,7 @@ class S4Block(nn.Module):
         self.n = n
         self.l_max = l_max
         self.activation = activation
+        self.norm_type = norm_type
         self.p_dropout = p_dropout
 
         self.pipeline = nn.Sequential(
@@ -53,7 +57,15 @@ class S4Block(nn.Module):
             nn.Linear(in_features=d_model, out_features=d_model),
             nn.Dropout(p_dropout),
         )
-        self.norm = nn.LayerNorm(d_model)
+
+        if norm_type is None:
+            self.norm = nn.Identity()
+        elif norm_type == "layer":
+            self.norm = nn.LayerNorm(d_model)
+        elif norm_type == "batch":
+            self.norm = nn.BatchNorm1d(d_model)
+        else:
+            raise ValueError(f"Unsupported norm type '{norm_type}'")
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
