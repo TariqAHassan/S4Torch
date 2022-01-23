@@ -113,8 +113,7 @@ class DatasetWrapper:
                 CUDA pinned memory prior to being emitted. If ``None`` this will
                 be determined automatically based on the availability of a device
                 with CUDA support (GPU).
-            **kwargs (Keyword Arguments): keyword arguments to pass
-                to ``DataLoader()``
+            **kwargs (Keyword Arguments): keyword arguments to pass to ``DataLoader()``
 
         Returns:
             dataloaders (tuple): a tuple of the form
