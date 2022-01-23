@@ -61,10 +61,17 @@ def _parse_pooling(
 
 
 class LighteningS4Model(pl.LightningModule):
-    def __init__(self, model: S4Model, lr: float, weight_decay: float) -> None:
+    def __init__(
+        self,
+        model: S4Model,
+        lr: float,
+        lr_s4: float,
+        weight_decay: float = 0.0,
+    ) -> None:
         super().__init__()
         self.model = model
         self.lr = lr
+        self.lr_s4 = lr_s4
         self.weight_decay = weight_decay
 
         self.loss = nn.CrossEntropyLoss()
@@ -108,7 +115,7 @@ class LighteningS4Model(pl.LightningModule):
             [
                 {
                     "params": self.model.blocks.parameters(),
-                    "lr": self.lr,
+                    "lr": self.lr_s4,
                     "weight_decay": 0.0,
                 },
                 {"params": self.model.encoder.parameters()},
@@ -122,7 +129,8 @@ class LighteningS4Model(pl.LightningModule):
 def main(
     dataset: str,
     batch_size: int,
-    lr: float = 1e-3,
+    lr: float = 1e-2,
+    lr_s4: float = 1e-3,
     weight_decay: float = 0.01,
     d_model: int = 128,
     n_blocks: int = 6,
@@ -145,8 +153,10 @@ def main(
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
-        lr (float): learning rate for the model
-        weight_decay (float): weight decay to use with optimizer
+        lr (float): learning rate for parameters which do not belong to S4 blocks
+        lr_s4 (float): learning rate for parameters which belong to S4 blocks
+        weight_decay (float): weight decay to use with optimizer. (Ignored
+            for parameters which belong to S4 blocks.)
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
@@ -190,7 +200,12 @@ def main(
         norm_type=norm_type,
     )
 
-    pl_s4model = LighteningS4Model(s4model, lr=lr, weight_decay=weight_decay)
+    pl_s4model = LighteningS4Model(
+        s4model,
+        lr=lr,
+        lr_s4=lr_s4,
+        weight_decay=weight_decay,
+    )
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
     trainer = pl.Trainer(
