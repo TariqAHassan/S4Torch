@@ -86,7 +86,7 @@ class S4Model(nn.Module):
         self.pooling = pooling
         self.p_dropout = p_dropout
 
-        *self.seq_len_schedule, self.seq_out = _seq_length_schedule(
+        *self.seq_len_schedule, self.seq_len_out = _seq_length_schedule(
             n_blocks=n_blocks,
             l_max=l_max,
             pool_kernel=None if self.pooling is None else self.pooling.kernel_size,
@@ -148,4 +148,4 @@ if __name__ == "__main__":
         collapse=False,
         pooling=None,
     )
-    assert s4model(u).shape == (u.shape[0], s4model.seq_out, s4model.d_output)
+    assert s4model(u).shape == (u.shape[0], s4model.seq_len_out, s4model.d_output)
