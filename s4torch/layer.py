@@ -95,9 +95,6 @@ class S4Layer(nn.Module):
 
     """
 
-    p: torch.Tensor
-    q: torch.Tensor
-    lambda_: torch.Tensor
     omega_l: torch.Tensor
     ifft_order: torch.Tensor
 
