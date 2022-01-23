@@ -202,8 +202,7 @@ def main(
 
     """
     seed_everything(seed, workers=True)
-    start_time = datetime.utcnow().isoformat()
-    run_name = f"s4-model-{start_time}"
+    run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_path = OutputPath(output_dir, run_name=run_name)
 
     ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
