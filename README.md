@@ -76,7 +76,7 @@ python train.py \
 ```
 
 **Validation Accuracy**: 75.0% after 8 epochs <br>
-**Speed**: 1.60 batches/second on a single V100 GPU
+**Speed**: 1.6 batches/second on a single V100 GPU
 
 Note: average pooling is used to reduce memory usage, and is not present in the original implementation. 
 
