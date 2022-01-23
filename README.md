@@ -42,6 +42,31 @@ s4model = S4Model(
 assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 ```
 
+## Training
+
+Models can be trained using the command line interface (CLI) provided by `train.py`.
+
+Note: development requirements must be installed prior to training. This can be
+accomplished by running `pip install -r dev_requirements.txt`.
+
+### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
+
+```sh
+python train.py --dataset=mnist --batch_size=16
+```
+
+**Validation Accuracy**: TBD
+**Speed**: ~5.5 batches/second on a single V100 GPU
+
+### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
+
+```sh
+python train.py --dataset=speechcommands10 --batch_size=16
+```
+
+**Validation Accuracy**: TBD
+**Speed**: TBD
+
 ## Components
 
 ### Layer
