@@ -51,6 +51,8 @@ def _parse_pooling(
 ) -> Optional[TemporalAveragePooling | TemporalMaxPooling]:
     if pooling is None:
         return None
+    elif pooling.count("_") != 1:
+        raise ValueError(f"`pooling` expected one underscore, got '{pooling}'")
 
     method, kernel_size = pooling.split("_")[0], int(pooling.split("_")[-1])
     if method == "avg":
