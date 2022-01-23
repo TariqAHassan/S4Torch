@@ -121,7 +121,7 @@ def main(
         train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
-        gpus (int): number of GPUs to use. If ``None``, use all available GPUs.
+        gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
 
     Returns:
         None
