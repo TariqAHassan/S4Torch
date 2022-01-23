@@ -83,7 +83,7 @@ python train.py \
   --patience=20
 ```
 
-**Validation Accuracy**: 78.7% after 12 epochs <br>
+**Validation Accuracy**: 79.3% after 15 epochs <br>
 **Speed**: ~1.6 batches/second
 
 #### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
