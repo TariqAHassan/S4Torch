@@ -165,7 +165,7 @@ def main(
             {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}.
             Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading.
-            If ``batch_size=-1`` the largest batch size possible will be used.
+            If ``batch_size=-1`` the largest possible batch size will be used.
         val_prop (float): proportion of the data to use for validation
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
