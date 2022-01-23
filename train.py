@@ -183,15 +183,15 @@ def main(
         max_epochs (int, optional): maximum number of epochs to train for
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
-        min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
+        min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use
         weight_decay (float): weight decay to use with optimizer. (Ignored
             for parameters which belong to S4 blocks.)
-        swa (bool): if ``True`` enable stochastic weight averaging.
-        accumulate_grad (int): number of batches to accumulate gradient over.
+        swa (bool): if ``True`` enable stochastic weight averaging
+        accumulate_grad (int): number of batches to accumulate gradient over
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
-        output_dir (str): directory where output (logs and checkpoints) will be saved.
+        output_dir (str): directory where output (logs and checkpoints) will be saved
         save_top_k (int): save top k models, as determined by the ``"val_acc"``
             metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
