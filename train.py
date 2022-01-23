@@ -158,7 +158,7 @@ def main(
     patience: int = 5,
     gpus: int = -1,
     # Auxiliary
-    output_dir: Optional[str] = None,
+    output_dir: str = "~/s4-output",
     save_top_k: int = 0,
     seed: int = 1234,
 ) -> None:
@@ -191,8 +191,7 @@ def main(
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
-        output_dir (str, optional): directory where output (logs and checkpoints)
-            will be saved. If ``None``, ``~/s4-output`` will be used.
+        output_dir (str): directory where output (logs and checkpoints) will be saved.
         save_top_k (int): save top k models, as determined by the ``"val_acc"``
             metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
