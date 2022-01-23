@@ -63,7 +63,7 @@ class LighteningS4Model(pl.LightningModule):
         logits = self.forward(_to_sequence(x))
         self.log(
             "val_acc" if validation else "acc",
-            _compute_accuracy(logits.detach(), labels=labels),
+            value=_compute_accuracy(logits.detach(), labels=labels),
             prog_bar=True,
         )
         loss = self.loss(logits, target=labels)
@@ -82,7 +82,7 @@ class LighteningS4Model(pl.LightningModule):
         batch_idx: int,
     ) -> torch.Tensor:
         loss = self._step(batch, validation=True)
-        self.log("val_loss", loss)
+        self.log("val_loss", value=loss)
         return loss
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
