@@ -6,13 +6,14 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple, Type
+from typing import Any, Optional, Tuple, Type
 
 import fire
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.utilities.seed import seed_everything
 from torch import nn
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from experiments.data.wrappers import DatasetWrapper
 from s4torch import S4Model
@@ -67,12 +68,14 @@ class LighteningS4Model(pl.LightningModule):
         lr: float,
         lr_s4: float,
         weight_decay: float = 0.0,
+        patience: int = 10,
     ) -> None:
         super().__init__()
         self.model = model
         self.lr = lr
         self.lr_s4 = lr_s4
         self.weight_decay = weight_decay
+        self.patience = patience
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -110,8 +113,8 @@ class LighteningS4Model(pl.LightningModule):
         self.log("val_loss", value=loss)
         return loss
 
-    def configure_optimizers(self) -> torch.optim.Optimizer:
-        return torch.optim.AdamW(
+    def configure_optimizers(self) -> dict[str, Any]:
+        optimizer = torch.optim.AdamW(
             [
                 {
                     "params": self.model.blocks.parameters(),
@@ -124,6 +127,14 @@ class LighteningS4Model(pl.LightningModule):
             lr=self.lr,
             weight_decay=self.weight_decay,
         )
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": ReduceLROnPlateau(optimizer, patience=self.patience),
+                "monitor": "val_acc",
+                "frequency": 1,
+            },
+        }
 
 
 def main(
@@ -136,13 +147,11 @@ def main(
     n_blocks: int = 6,
     n: int = 64,
     p_dropout: float = 0.2,
-    train_p: bool = False,
-    train_q: bool = False,
-    train_lambda: bool = False,
     pooling: Optional[str] = None,
     norm_type: Optional[str] = "layer",
     swa: bool = False,
     accumulate_grad: int = 1,
+    patience: int = 5,
     gpus: Optional[int] = None,
     val_prop: float = 0.1,
     seed: int = 1234,
@@ -161,15 +170,14 @@ def main(
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
-        train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
-        train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
-        train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         pooling (str, optional): pooling method to use. Options: ``None``, ``"max_KERNEL_SIZE"``,
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
+        patience (int): number of epochs with no improvement to wait before
+            reducing the learning rate
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
         seed (int): random seed for training
@@ -193,9 +201,6 @@ def main(
         l_max=math.prod(dataset_wrapper.shape),
         collapse=True,  # classification
         p_dropout=p_dropout,
-        train_p=train_p,
-        train_q=train_q,
-        train_lambda=train_lambda,
         pooling=_parse_pooling(pooling),
         norm_type=norm_type,
     )
@@ -205,6 +210,7 @@ def main(
         lr=lr,
         lr_s4=lr_s4,
         weight_decay=weight_decay,
+        patience=patience,
     )
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
