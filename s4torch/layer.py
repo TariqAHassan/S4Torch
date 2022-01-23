@@ -53,7 +53,7 @@ def _make_nplr_hippo(N: int) -> tuple[np.ndarray, ...]:
     return lambda_, p, q, V
 
 
-def _make_buffers(n: int) -> list[torch.Tensor]:
+def _make_p_q_lambda(n: int) -> list[torch.Tensor]:
     lambda_, p, q, V = _make_nplr_hippo(n)
     Vc = V.conj().T
     p = Vc @ p
@@ -87,26 +87,14 @@ class S4Layer(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        train_p (bool): if ``True`` train the ``p`` tensor
-        train_q (bool): if ``True`` train the ``q`` tensor
-        train_lambda (bool): if ``True`` train the ``lambda`` tensor
         complex_dtype (torch.dtype): data type for complex tensors
 
     Attributes:
-        p (torch.Tensor): ``p`` tensor as a buffer if ``train_p=False``,
-            and as a parameter otherwise
-        q (torch.Tensor): ``q`` tensor as a buffer if ``train_p=False``,
-            and as a parameter otherwise
-        lambda_ (torch.Tensor): ``lambda_`` tensor as a buffer if ``train_p=False``,
-            and as a parameter otherwise
         omega_l (torch.Tensor): omega buffer (of length ``l_max``) used to obtain ``K``.
         ifft_order (torch.Tensor): (re)ordering for output of ``torch.fft.ifft()``.
 
     """
 
-    p: torch.Tensor
-    q: torch.Tensor
-    lambda_: torch.Tensor
     omega_l: torch.Tensor
     ifft_order: torch.Tensor
 
@@ -115,41 +103,29 @@ class S4Layer(nn.Module):
         d_model: int,
         n: int,
         l_max: int,
-        train_p: bool = False,
-        train_q: bool = False,
-        train_lambda: bool = False,
         complex_dtype: torch.dtype = torch.complex64,
     ) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
-        self.train_p = train_p
-        self.train_q = train_q
-        self.train_lambda = train_lambda
         self.complex_dtype = complex_dtype
 
-        p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_buffers(n))
-        self._register_tensor("p", tensor=p, trainable=train_p)
-        self._register_tensor("q", tensor=q, trainable=train_q)
-        self._register_tensor(
-            "lambda_",
-            tensor=lambda_.unsqueeze(0),
-            trainable=train_lambda,
-        )
-        self._register_tensor(
+        p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_p_q_lambda(n))
+        self.p = nn.Parameter(p)
+        self.q = nn.Parameter(q)
+        self.lambda_ = nn.Parameter(lambda_.unsqueeze(0).unsqueeze(1))
+
+        self.register_buffer(
             "omega_l",
             tensor=_make_omega_l(self.l_max, dtype=complex_dtype),
-            trainable=False,
         )
-
-        self._register_tensor(
+        self.register_buffer(
             "ifft_order",
             tensor=torch.as_tensor(
                 [i if i == 0 else self.l_max - i for i in range(self.l_max)],
                 dtype=torch.long,
             ),
-            trainable=False,
         )
 
         self.B = nn.Parameter(init.xavier_normal_(torch.empty(n, d_model)).T)
@@ -158,25 +134,7 @@ class S4Layer(nn.Module):
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
     def extra_repr(self) -> str:
-        return (
-            f"d_model={self.d_model}, "
-            f"n={self.n}, "
-            f"l_max={self.l_max}, "
-            f"train_p={self.train_p}, "
-            f"train_q={self.train_q}, "
-            f"train_lambda={self.train_lambda}"
-        )
-
-    def _register_tensor(
-        self,
-        name: str,
-        tensor: torch.Tensor,
-        trainable: bool,
-    ) -> None:
-        if trainable:
-            self.register_parameter(name, param=nn.Parameter(tensor))
-        else:
-            self.register_buffer(name, tensor=tensor)
+        return f"d_model={self.d_model}, n={self.n}, l_max={self.l_max}"
 
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
@@ -185,7 +143,7 @@ class S4Layer(nn.Module):
 
         g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
         c = 2.0 / (1.0 + self.omega_l)
-        cauchy_dot_denominator = g.unsqueeze(-1) - self.lambda_.unsqueeze(1)
+        cauchy_dot_denominator = g.unsqueeze(-1) - self.lambda_
 
         k00 = _cauchy_dot(a0 * b0, denominator=cauchy_dot_denominator)
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
