@@ -1,6 +1,6 @@
 """
 
-    1D MNIST Classification
+    S4 Training
 
 """
 import math
