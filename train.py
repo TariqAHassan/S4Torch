@@ -163,6 +163,7 @@ def main(
     lr_s4: float = 1e-3,
     min_lr: float = 1e-6,
     weight_decay: float = 0.01,
+    max_epochs: Optional[int] = None,
     swa: bool = False,
     accumulate_grad: int = 1,
     patience: int = 5,
@@ -192,6 +193,7 @@ def main(
         min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
         weight_decay (float): weight decay to use with optimizer. (Ignored
             for parameters which belong to S4 blocks.)
+        max_epochs (int, optional): maximum number of epochs to train for
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
         patience (int): number of epochs with no improvement to wait before
@@ -225,6 +227,7 @@ def main(
     )
 
     pl.Trainer(
+        max_epochs=max_epochs,
         gpus=gpus or (torch.cuda.device_count() or None),
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
