@@ -154,7 +154,7 @@ def main(
         train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
-        pooling (str): pooling method to use. Options: ``"none"``, ``"max_KERNEL_SIZE"``,
+        pooling (str, optional): pooling method to use. Options: ``None``, ``"max_KERNEL_SIZE"``,
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
