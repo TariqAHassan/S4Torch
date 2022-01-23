@@ -3,12 +3,36 @@
     S4 Model
 
 """
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, Optional
 
 import torch
 from torch import nn
 
+from s4torch.aux.layers import TemporalAveragePooling, TemporalMaxPooling
 from s4torch.block import S4Block
+
+
+def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
+    if pool_kernel is None:
+        return 1
+    elif isinstance(pool_kernel, tuple):
+        return pool_kernel[0]
+    else:
+        return pool_kernel
+
+
+def _seq_length_schedule(
+    n_blocks: int,
+    l_max: int,
+    pool_kernel: Optional[tuple[int]],
+) -> list[int]:
+    schedule = list()
+    for depth in range(n_blocks + 1):
+        schedule.append(l_max)
+        l_max = max(1, l_max // _parse_pool_kernel(pool_kernel))
+    return schedule
 
 
 class S4Model(nn.Module):
@@ -30,6 +54,8 @@ class S4Model(nn.Module):
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
+        pooling (TemporalAveragePooling, TemporalMaxPooling, optional): pooling
+            method to use following ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Block()``.
@@ -45,6 +71,7 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
+        pooling: Optional[TemporalAveragePooling | TemporalMaxPooling] = None,
         p_dropout: float = 0.0,
         **kwargs: Any,
     ) -> None:
@@ -56,20 +83,30 @@ class S4Model(nn.Module):
         self.n = n
         self.l_max = l_max
         self.collapse = collapse
+        self.pooling = pooling
         self.p_dropout = p_dropout
+
+        *self.seq_len_schedule, self.seq_out = _seq_length_schedule(
+            n_blocks=n_blocks,
+            l_max=l_max,
+            pool_kernel=None if self.pooling is None else self.pooling.kernel_size,
+        )
 
         self.encoder = nn.Linear(self.d_input, self.d_model)
         self.decoder = nn.Linear(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
-                S4Block(
-                    d_model=d_model,
-                    n=n,
-                    l_max=l_max,
-                    p_dropout=p_dropout,
-                    **kwargs,
+                nn.Sequential(
+                    S4Block(
+                        d_model=d_model,
+                        n=n,
+                        l_max=seq_len,
+                        p_dropout=p_dropout,
+                        **kwargs,
+                    ),
+                    pooling or nn.Identity(),
                 )
-                for _ in range(n_blocks)
+                for seq_len in self.seq_len_schedule
             ]
         )
 
@@ -109,5 +146,6 @@ if __name__ == "__main__":
         n=N,
         l_max=l_max,
         collapse=False,
+        pooling=None,
     )
-    assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
+    assert s4model(u).shape == (u.shape[0], s4model.seq_out, s4model.d_output)
