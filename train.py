@@ -70,6 +70,7 @@ class LighteningS4Model(pl.LightningModule):
         model: S4Model,
         lr: float,
         lr_s4: float,
+        min_lr: float = 1e-6,
         weight_decay: float = 0.0,
         patience: int = 10,
     ) -> None:
@@ -77,6 +78,7 @@ class LighteningS4Model(pl.LightningModule):
         self.model = model
         self.lr = lr
         self.lr_s4 = lr_s4
+        self.min_lr = min_lr
         self.weight_decay = weight_decay
         self.patience = patience
 
@@ -130,10 +132,15 @@ class LighteningS4Model(pl.LightningModule):
             lr=self.lr,
             weight_decay=self.weight_decay,
         )
+        scheduler = ReduceLROnPlateau(
+            optimizer,
+            patience=self.patience,
+            min_lr=self.min_lr,
+        )
         return {
             "optimizer": optimizer,
             "lr_scheduler": {
-                "scheduler": ReduceLROnPlateau(optimizer, patience=self.patience),
+                "scheduler": scheduler,
                 "monitor": "val_acc",
                 "frequency": 1,
             },
@@ -145,6 +152,7 @@ def main(
     batch_size: int,
     lr: float = 1e-2,
     lr_s4: float = 1e-3,
+    min_lr: float = 1e-6,
     weight_decay: float = 0.01,
     d_model: int = 128,
     n_blocks: int = 6,
@@ -161,12 +169,16 @@ def main(
 ) -> None:
     f"""Train S4 model.
 
+    Perform S4 Model training using an ``AdamW`` optimizer and
+    ``ReduceLROnPlateau`` learning rate scheduler.
+
     Args:
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
+        min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
         weight_decay (float): weight decay to use with optimizer. (Ignored
             for parameters which belong to S4 blocks.)
         d_model (int): number of internal features
@@ -218,6 +230,7 @@ def main(
             s4model,
             lr=lr,
             lr_s4=lr_s4,
+            min_lr=min_lr,
             weight_decay=weight_decay,
             patience=patience,
         ),
