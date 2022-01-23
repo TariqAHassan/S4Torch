@@ -27,11 +27,15 @@ def _seq_length_schedule(
     n_blocks: int,
     l_max: int,
     pool_kernel: Optional[tuple[int]],
-) -> list[int]:
+) -> list[tuple[int, int]]:
+    ppk = _parse_pool_kernel(pool_kernel)
+
     schedule = list()
     for depth in range(n_blocks + 1):
-        schedule.append(l_max)
-        l_max = max(1, l_max // _parse_pool_kernel(pool_kernel))
+        l_max_next = max(1, l_max // ppk)
+        pool_ok = l_max_next > ppk
+        schedule.append((l_max, pool_ok))
+        l_max = l_max_next
     return schedule
 
 
@@ -86,7 +90,7 @@ class S4Model(nn.Module):
         self.pooling = pooling
         self.p_dropout = p_dropout
 
-        *self.seq_len_schedule, self.seq_len_out = _seq_length_schedule(
+        *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
             l_max=l_max,
             pool_kernel=None if self.pooling is None else self.pooling.kernel_size,
@@ -104,9 +108,9 @@ class S4Model(nn.Module):
                         p_dropout=p_dropout,
                         **kwargs,
                     ),
-                    pooling or nn.Identity(),
+                    nn.Identity() if pooling is None or not pool_ok else pooling,
                 )
-                for seq_len in self.seq_len_schedule
+                for (seq_len, pool_ok) in self.seq_len_schedule
             ]
         )
 
