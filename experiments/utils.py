@@ -4,6 +4,7 @@
 
 """
 from pathlib import Path
+from typing import Optional
 
 import torch
 
@@ -24,9 +25,11 @@ def to_sequence(x: torch.Tensor) -> torch.Tensor:
 
 
 class OutputPaths:
-    def __init__(self, output_dir: str, run_name: str) -> None:
+    def __init__(self, output_dir: Optional[str], run_name: str) -> None:
         self.output_dir = (
-            (Path(output_dir) or _DEFAULT_OUTPUT_DIR).expanduser().absolute()
+            (_DEFAULT_OUTPUT_DIR if output_dir is None else Path(output_dir))
+            .expanduser()
+            .absolute()
         )
         self.run_name = run_name
 
