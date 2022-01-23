@@ -52,6 +52,7 @@ Models can be trained using the command line interface (CLI) provided by `train.
    running `pip install -r dev_requirements.txt`.
  * average pooling is used in some training sessions described below to reduce memory usage, and is 
    not present in the original implementation. Pooling can be disabled by setting `--pooling=None`.
+ * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
 #### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
@@ -60,7 +61,7 @@ python train.py --dataset=mnist --batch_size=16
 ```
 
 **Validation Accuracy**: 98.6% after 4 epochs <br>
-**Speed**: ~11.5 batches/second on a single V100 GPU
+**Speed**: ~11.5 batches/second
 
 #### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
 
@@ -79,7 +80,7 @@ python train.py \
 ```
 
 **Validation Accuracy**: 75.0% after 8 epochs <br>
-**Speed**: ~1.6 batches/second on a single V100 GPU
+**Speed**: ~1.6 batches/second
 
 #### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
 
