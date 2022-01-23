@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import math
+from argparse import Namespace
 from datetime import datetime
 from typing import Any, Optional, Tuple, Type
 
@@ -54,11 +55,11 @@ def _parse_pooling(
 
 
 class LighteningS4Model(pl.LightningModule):
-    def __init__(self, model: S4Model, hparams: dict[str, Any]) -> None:
+    def __init__(self, model: S4Model, hparams: Namespace) -> None:
         super().__init__()
         self.model = model
 
-        self.save_hyperparameters(hparams)
+        self.save_hyperparameters(hparams, ignore=("model", "hparams"))
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -190,7 +191,7 @@ def main(
         None
 
     """
-    hparams = locals()
+    hparams = Namespace(**locals())
     seed_everything(seed, workers=True)
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
