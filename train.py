@@ -26,12 +26,12 @@ from experiments.utils import OutputPaths, to_sequence
 from s4torch import S4Model
 from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 
-_DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
+_DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
 def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
     try:
-        return _DATASETS[name.upper()]
+        return _DATASET_WRAPPERS[name.upper()]
     except KeyError:
         raise KeyError(f"Unknown dataset '{name}'")
 
@@ -159,7 +159,8 @@ def main(
 
     Args:
         dataset (str): datasets to train against. Available options:
-            {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
+            {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}. 
+            Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
         val_prop (float): proportion of the data to use for validation
         d_model (int): number of internal features
