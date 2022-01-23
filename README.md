@@ -55,7 +55,7 @@ accomplished by running `pip install -r dev_requirements.txt`.
 python train.py --dataset=mnist --batch_size=16
 ```
 
-**Validation Accuracy**: TBD
+**Validation Accuracy**: TBD <br>
 **Speed**: ~5.5 batches/second on a single V100 GPU
 
 ### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
@@ -64,7 +64,7 @@ python train.py --dataset=mnist --batch_size=16
 python train.py --dataset=speechcommands10 --batch_size=16
 ```
 
-**Validation Accuracy**: TBD
+**Validation Accuracy**: TBD <br>
 **Speed**: TBD
 
 ## Components
