@@ -2,7 +2,8 @@
 
 A PyTorch implementation of [Structured State Space for Sequence Modeling (S4)](https://arxiv.org/abs/2111.00396), 
 based on the beautiful [Annotated S4](https://srush.github.io/annotated-s4/) blog post
-by [@srush](https://github.com/srush) and [@siddk](https://github.com/siddk).
+and JAX-based [library](https://github.com/srush/annotated-s4/) by [@srush](https://github.com/srush) and 
+[@siddk](https://github.com/siddk).
 
 ## Installation
 
