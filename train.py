@@ -29,6 +29,11 @@ from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
+def _verbose_print(msg: str, verbose: bool) -> None:
+    if verbose:
+        print(msg)
+
+
 def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
     try:
         return _DATASET_WRAPPERS[name.upper()]
@@ -125,7 +130,7 @@ class LighteningS4Model(pl.LightningModule):
 def main(
     # Dataset
     dataset: str,
-    batch_size: int,
+    batch_size: int = -1,
     val_prop: float = 0.1,
     # Model
     d_model: int = 128,
@@ -148,6 +153,7 @@ def main(
     output_dir: str = "~/s4-output",
     save_top_k: int = 0,
     seed: int = 1234,
+    verbose: bool = True,
 ) -> None:
     f"""Train a S4 model.
 
@@ -158,7 +164,8 @@ def main(
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}.
             Case-insensitive.
-        batch_size (int): number of subprocesses to use for data loading
+        batch_size (int): number of subprocesses to use for data loading.
+            If ``batch_size=-1`` the largest batch size possible will be used.
         val_prop (float): proportion of the data to use for validation
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
@@ -183,6 +190,7 @@ def main(
         save_top_k (int): save top k models, as determined by the ``val_acc``
             metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
+        verbose (bool): if ``True`` print additional information
 
     Returns:
         None
@@ -192,26 +200,31 @@ def main(
     seed_everything(seed, workers=True)
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
+    auto_scale_batch_size = batch_size == -1
     ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
 
-    s4model = S4Model(
-        d_input=max(1, ds_wrapper.channels),
-        d_model=d_model,
-        d_output=ds_wrapper.n_classes,
-        n_blocks=n_blocks,
-        n=s4_n,
-        l_max=math.prod(ds_wrapper.shape),
-        collapse=True,  # classification
-        p_dropout=p_dropout,
-        pooling=_parse_pooling(pooling),
-        norm_type=norm_type,
+    pl_model = LighteningS4Model(
+        S4Model(
+            d_input=max(1, ds_wrapper.channels),
+            d_model=d_model,
+            d_output=ds_wrapper.n_classes,
+            n_blocks=n_blocks,
+            n=s4_n,
+            l_max=math.prod(ds_wrapper.shape),
+            collapse=True,  # classification
+            p_dropout=p_dropout,
+            pooling=_parse_pooling(pooling),
+            norm_type=norm_type,
+        ),
+        hparams=hparams,
     )
 
-    pl.Trainer(
+    trainer = pl.Trainer(
         max_epochs=max_epochs,
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
+        auto_scale_batch_size=auto_scale_batch_size,
         logger=TensorBoardLogger(output_paths.logs, name=run_name),
         callbacks=ModelCheckpoint(
             dirpath=output_paths.checkpoints,
@@ -219,10 +232,12 @@ def main(
             monitor="val_acc",
             save_top_k=save_top_k,
         ),
-    ).fit(
-        LighteningS4Model(s4model, hparams=hparams),
-        *ds_wrapper.get_dataloaders(batch_size),
     )
+    if auto_scale_batch_size:
+        trainer.tune(pl_model, *ds_wrapper.get_dataloaders(1))
+        _verbose_print(f"Batch size: {pl_model.hparams.batch_size}", verbose=verbose)
+
+    trainer.fit(pl_model, *ds_wrapper.get_dataloaders(pl_model.hparams.batch_size))
 
 
 if __name__ == "__main__":

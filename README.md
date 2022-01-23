@@ -58,7 +58,9 @@ Models can be trained using the command line interface (CLI) provided by `train.
 #### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
 ```sh
-python train.py --dataset=mnist --batch_size=16
+python train.py \
+  --dataset=mnist \
+  --batch_size=-1  # use largest possible batch size
 ```
 
 **Validation Accuracy**: 98.6% after 4 epochs <br>
@@ -69,7 +71,7 @@ python train.py --dataset=mnist --batch_size=16
 ```shell
 python train.py \
   --dataset=CIFAR10 \
-  --batch_size=32 \
+  --batch_size=-1 \
   --max_epochs=200 \
   --lr=1e-2 \
   --n_blocks=6 \
@@ -88,7 +90,7 @@ python train.py \
 ```sh
 python train.py \
   --dataset=speechcommands10 \
-  --batch_size=16 \
+  --batch_size=-1 \
   --max_epochs=150 \
   --lr=1e-2 \
   --n_blocks=6 \
