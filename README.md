@@ -59,6 +59,27 @@ python train.py --dataset=mnist --batch_size=16
 **Validation Accuracy**: 98.6% after 4 epochs <br>
 **Speed**: ~5.5 batches/second on a single V100 GPU
 
+#### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
+
+```shell
+python train.py \
+  --dataset=CIFAR10 \
+  --batch_size=32 \
+  --max_epochs=200 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --pooling=avg_2 \
+  --d_model=1024 \
+  --weight_decay=0.01 \
+  --p_dropout=0.25 \
+  --patience=20
+```
+
+**Validation Accuracy**: TBD <br>
+**Speed**: TBD
+
+Note: average pooling is used to reduce memory usage, and is not used in the original implementation. 
+
 #### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
 
 ```sh
