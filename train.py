@@ -19,7 +19,7 @@ _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 def _get_dataset_wrapper(name: str) -> DatasetWrapper:
     try:
-        return _DATASETS[name.strip().upper()]
+        return _DATASETS[name.upper()]
     except KeyError:
         raise KeyError(f"Unknown dataset '{name}'")
 
@@ -127,7 +127,7 @@ def main(
         None
 
     """
-    dataset_wrapper = _get_dataset_wrapper(dataset)
+    dataset_wrapper = _get_dataset_wrapper(dataset.strip())
 
     s4model = S4Model(
         d_input=dataset_wrapper.channels,
