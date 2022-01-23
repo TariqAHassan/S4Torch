@@ -24,7 +24,7 @@ class S4Model(nn.Module):
         d_input (int): number of input features
         d_model (int): number of internal features
         d_output (int): number of features to return
-        n_blocks (int): number of S4 layers to construct
+        n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         collapse (bool): if ``True`` average over time prior to

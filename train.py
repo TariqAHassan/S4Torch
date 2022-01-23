@@ -112,7 +112,7 @@ def main(
     Args:
         dataset (str): datasets to train against. Options: {', '.join(sorted(_DATASETS))}.
         d_model (int): number of internal features
-        n_blocks (int): number of S4 layers to construct
+        n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
         train_p (bool): if ``True`` train the ``p`` tensor
