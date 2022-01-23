@@ -81,6 +81,7 @@ class LighteningS4Model(pl.LightningModule):
         batch_idx: int,
     ) -> torch.Tensor:
         loss, acc = self._step(batch)
+        self.log("loss", value=loss)
         self.log("acc", value=acc, prog_bar=True)
         return loss
 
