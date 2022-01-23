@@ -50,9 +50,9 @@ Models can be trained using the command line interface (CLI) provided by `train.
 **Notes**:
  * development requirements must be installed prior to training. This can be accomplished by 
    running `pip install -r dev_requirements.txt`.
- * average pooling is used in some training sessions (described below) to reduce memory usage, and is 
-   not present in the original implementation. Pooling can be disabled by setting `--pooling=None`,
-   or by simply omitting the `--pooling` flag.
+ * average pooling is used in some training sessions described below. The primary motivation  
+   for the use of pooling is to reduce memory usage and is not used in the original implementation.
+   Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
 #### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
