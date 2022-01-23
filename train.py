@@ -107,7 +107,7 @@ class LighteningS4Model(pl.LightningModule):
                 {"params": self.model.encoder.parameters()},
                 {"params": self.model.decoder.parameters()},
             ],
-            lr=self.lr,
+            lr=self.hparams.lr,
             weight_decay=self.hparams.weight_decay,
         )
         scheduler = ReduceLROnPlateau(
