@@ -87,7 +87,6 @@ class S4Layer(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        complex_dtype (torch.dtype): data type for complex tensors
 
     Attributes:
         omega_l (torch.Tensor): omega buffer (of length ``l_max``) used to obtain ``K``.
@@ -98,27 +97,20 @@ class S4Layer(nn.Module):
     omega_l: torch.Tensor
     ifft_order: torch.Tensor
 
-    def __init__(
-        self,
-        d_model: int,
-        n: int,
-        l_max: int,
-        complex_dtype: torch.dtype = torch.complex64,
-    ) -> None:
+    def __init__(self, d_model: int, n: int, l_max: int) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
-        self.complex_dtype = complex_dtype
 
-        p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_p_q_lambda(n))
+        p, q, lambda_ = map(lambda t: t.type(torch.complex64), _make_p_q_lambda(n))
         self.p = nn.Parameter(p)
         self.q = nn.Parameter(q)
         self.lambda_ = nn.Parameter(lambda_.unsqueeze(0).unsqueeze(1))
 
         self.register_buffer(
             "omega_l",
-            tensor=_make_omega_l(self.l_max, dtype=complex_dtype),
+            tensor=_make_omega_l(self.l_max, dtype=torch.complex64),
         )
         self.register_buffer(
             "ifft_order",
