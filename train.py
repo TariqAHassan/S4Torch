@@ -113,6 +113,7 @@ def main(
     train_p: bool = False,
     train_q: bool = False,
     train_lambda: bool = False,
+    swa: bool = False,
     gpus: Optional[int] = None,
     val_prop: float = 0.1,
     seed: int = 1234,
@@ -132,6 +133,7 @@ def main(
         train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
+        swa (bool): if ``True`` enable stochastic weight averaging.
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
         seed (int): random seed for training
@@ -163,7 +165,10 @@ def main(
     pl_s4model = LighteningS4Model(s4model, lr=lr, weight_decay=weight_decay)
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
-    trainer = pl.Trainer(gpus=gpus or (torch.cuda.device_count() or None))
+    trainer = pl.Trainer(
+        gpus=gpus or (torch.cuda.device_count() or None),
+        stochastic_weight_avg=swa,
+    )
     trainer.fit(pl_s4model, dl_train, dl_val)
 
 
