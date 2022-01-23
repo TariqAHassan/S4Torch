@@ -191,6 +191,7 @@ def main(
         val_prop=val_prop,
         seed=seed,
     )  # noqa
+    dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
     s4model = S4Model(
         d_input=max(1, dataset_wrapper.channels),
@@ -205,14 +206,11 @@ def main(
         norm_type=norm_type,
     )
 
-    dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
-
-    trainer = pl.Trainer(
+    pl.Trainer(
         gpus=gpus or (torch.cuda.device_count() or None),
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
-    )
-    trainer.fit(
+    ).fit(
         LighteningS4Model(
             s4model,
             lr=lr,
