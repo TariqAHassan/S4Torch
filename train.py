@@ -4,7 +4,7 @@
 
 """
 import math
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Type
 
 import fire
 import pytorch_lightning as pl
@@ -17,7 +17,7 @@ from s4torch import S4Model
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
-def _get_dataset_wrapper(name: str) -> DatasetWrapper:
+def _get_dataset_wrapper(name: str) -> Type[DatasetWrapper]:
     try:
         return _DATASETS[name.upper()]
     except KeyError:
@@ -107,6 +107,7 @@ def main(
     train_q: bool = False,
     train_lambda: bool = False,
     gpus: Optional[int] = None,
+    val_prop: float = 0.1,
 ) -> None:
     f"""Train S4 model.
 
@@ -122,12 +123,13 @@ def main(
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
+        val_prop (float): proportion of the data to use for validation
 
     Returns:
         None
 
     """
-    dataset_wrapper = _get_dataset_wrapper(dataset.strip())
+    dataset_wrapper = _get_dataset_wrapper(dataset.strip())(val_prop=val_prop)  # noqa
 
     s4model = S4Model(
         d_input=max(1, dataset_wrapper.channels),
