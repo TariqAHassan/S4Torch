@@ -47,8 +47,11 @@ assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 
 Models can be trained using the command line interface (CLI) provided by `train.py`.
 
-Note: development requirements must be installed prior to training. <br> 
-This can be accomplished by running `pip install -r dev_requirements.txt`.
+Notes: 
+    * development requirements must be installed prior to training, which can be accomplished by 
+      running `pip install -r dev_requirements.txt`.
+    * average pooling is used in some training sessions described below to reduce memory usage, and is 
+      not present in the original implementation. Pooling can be disabled by setting `--pooling=None`.
 
 #### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
@@ -78,12 +81,21 @@ python train.py \
 **Validation Accuracy**: 75.0% after 8 epochs <br>
 **Speed**: ~1.6 batches/second on a single V100 GPU
 
-Note: average pooling is used to reduce memory usage, and is not present in the original implementation. 
-
 #### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
 
 ```sh
-python train.py --dataset=speechcommands10 --batch_size=16
+python train.py \
+  --dataset=speechcommands10 \
+  --batch_size=16 \
+  --max_epochs=150 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --pooling=avg_2 \
+  --d_model=128 \
+  --weight_decay=0.0 \
+  --norm_type=batch,
+  --p_dropout=0.1 \
+  --patience=10
 ```
 
 **Validation Accuracy**: TBD <br>
