@@ -205,13 +205,6 @@ def main(
         norm_type=norm_type,
     )
 
-    pl_s4model = LighteningS4Model(
-        s4model,
-        lr=lr,
-        lr_s4=lr_s4,
-        weight_decay=weight_decay,
-        patience=patience,
-    )
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
     trainer = pl.Trainer(
@@ -219,7 +212,17 @@ def main(
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
     )
-    trainer.fit(pl_s4model, dl_train, dl_val)
+    trainer.fit(
+        LighteningS4Model(
+            s4model,
+            lr=lr,
+            lr_s4=lr_s4,
+            weight_decay=weight_decay,
+            patience=patience,
+        ),
+        train_dataloaders=dl_train,
+        val_dataloaders=dl_val,
+    )
 
 
 if __name__ == "__main__":
