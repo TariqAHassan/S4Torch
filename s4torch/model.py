@@ -10,7 +10,7 @@ from typing import Any, Optional
 import torch
 from torch import nn
 
-from s4torch.aux.layers import TemporalAveragePooling, TemporalMaxPooling
+from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 from s4torch.block import S4Block
 
 
@@ -58,7 +58,7 @@ class S4Model(nn.Module):
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
-        pooling (TemporalAveragePooling, TemporalMaxPooling, optional): pooling
+        pooling (TemporalAvgPooling, TemporalMaxPooling, optional): pooling
             method to use following ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         **kwargs (Keyword Args): Keyword arguments to be passed to
@@ -75,7 +75,7 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
-        pooling: Optional[TemporalAveragePooling | TemporalMaxPooling] = None,
+        pooling: Optional[TemporalAvgPooling | TemporalMaxPooling] = None,
         p_dropout: float = 0.0,
         **kwargs: Any,
     ) -> None:

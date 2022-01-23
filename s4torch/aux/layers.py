@@ -12,6 +12,6 @@ class TemporalMaxPooling(nn.MaxPool1d):
         return super().forward(input.transpose(-2, -1)).transpose(-2, -1)
 
 
-class TemporalAveragePooling(nn.AvgPool1d):
+class TemporalAvgPooling(nn.AvgPool1d):
     def forward(self, input: torch.Tensor) -> torch.Tensor:  # noqa
         return super().forward(input.transpose(-2, -1)).transpose(-2, -1)

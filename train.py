@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from experiments.data.wrappers import DatasetWrapper
 from s4torch import S4Model
-from s4torch.aux.layers import TemporalAveragePooling, TemporalMaxPooling
+from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
@@ -48,7 +48,7 @@ def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tenso
 
 def _parse_pooling(
     pooling: Optional[str],
-) -> Optional[TemporalAveragePooling | TemporalMaxPooling]:
+) -> Optional[TemporalAvgPooling | TemporalMaxPooling]:
     if pooling is None:
         return None
     elif pooling.count("_") != 1:
@@ -56,7 +56,7 @@ def _parse_pooling(
 
     method, kernel_size = pooling.split("_")[0], int(pooling.split("_")[-1])
     if method == "avg":
-        return TemporalAveragePooling(kernel_size)
+        return TemporalAvgPooling(kernel_size)
     elif method == "max":
         return TemporalMaxPooling(kernel_size)
     else:
