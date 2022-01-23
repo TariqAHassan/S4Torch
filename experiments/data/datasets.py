@@ -2,6 +2,9 @@
 
     Datasets
 
+    References:
+        * https://github.com/HazyResearch/state-spaces
+
 """
 from pathlib import Path
 from typing import Any
