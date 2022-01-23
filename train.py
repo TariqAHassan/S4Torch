@@ -27,7 +27,7 @@ from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
-def _get_dataset_wrapper(name: str) -> Type[DatasetWrapper]:
+def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
     try:
         return _DATASETS[name.upper()]
     except KeyError:
@@ -206,19 +206,16 @@ def main(
     run_name = f"s4-model-{start_time}"
     output_path = OutputPath(output_dir, run_name=run_name)
 
-    dataset_wrapper = _get_dataset_wrapper(dataset.strip())(
-        val_prop=val_prop,
-        seed=seed,
-    )  # noqa
-    dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
+    ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
+    dl_train, dl_val = ds_wrapper.get_dataloaders(batch_size)
 
     s4model = S4Model(
-        d_input=max(1, dataset_wrapper.channels),
+        d_input=max(1, ds_wrapper.channels),
         d_model=d_model,
-        d_output=dataset_wrapper.n_classes,
+        d_output=ds_wrapper.n_classes,
         n_blocks=n_blocks,
         n=s4_n,
-        l_max=math.prod(dataset_wrapper.shape),
+        l_max=math.prod(ds_wrapper.shape),
         collapse=True,  # classification
         p_dropout=p_dropout,
         pooling=_parse_pooling(pooling),
