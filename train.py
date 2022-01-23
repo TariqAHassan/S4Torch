@@ -9,6 +9,7 @@ from typing import Optional, Tuple, Type
 import fire
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.utilities.seed import seed_everything
 from torch import nn
 
 from experiments.data.wrappers import DatasetWrapper
@@ -114,6 +115,7 @@ def main(
     train_lambda: bool = False,
     gpus: Optional[int] = None,
     val_prop: float = 0.1,
+    seed: int = 1234,
 ) -> None:
     f"""Train S4 model.
 
@@ -132,12 +134,17 @@ def main(
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
+        seed (int): random seed for training
 
     Returns:
         None
 
     """
-    dataset_wrapper = _get_dataset_wrapper(dataset.strip())(val_prop=val_prop)  # noqa
+    seed_everything(seed, workers=True)
+    dataset_wrapper = _get_dataset_wrapper(dataset.strip())(
+        val_prop=val_prop,
+        seed=seed,
+    )  # noqa
 
     s4model = S4Model(
         d_input=max(1, dataset_wrapper.channels),
