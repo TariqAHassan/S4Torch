@@ -13,17 +13,18 @@ class OutputPaths:
         self.output_dir = Path(output_dir).expanduser().absolute()
         self.run_name = run_name
 
-    @property
-    def logs(self) -> Path:
-        path = self.output_dir.joinpath("logs")
+    def _make_dir(self, name: str) -> Path:
+        path = self.output_dir.joinpath(name)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
+    def logs(self) -> Path:
+        return self._make_dir("logs")
+
+    @property
     def checkpoints(self) -> Path:
-        path = self.output_dir.joinpath(f"checkpoints/{self.run_name}")
-        path.mkdir(parents=True, exist_ok=True)
-        return path
+        return self._make_dir(f"checkpoints/{self.run_name}")
 
 
 def to_sequence(x: torch.Tensor) -> torch.Tensor:
