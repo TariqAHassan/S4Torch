@@ -32,7 +32,12 @@ class TemporalMaxPooling(TemporalBasePooling, nn.MaxPool1d):
 
 
 if __name__ == "__main__":
-    x = torch.randn(1, 1024, 128)
+    BATCH_SIZE: int = 2
+    SEQ_LEN: int = 1024
+    HIDDEN_DIM: int = 128
+    KERNEL_SIZE: int = 2
+    EXPECTED_SHAPE = (BATCH_SIZE, SEQ_LEN // KERNEL_SIZE, HIDDEN_DIM)
 
-    for pool in (TemporalMaxPooling(2), TemporalAvgPooling(2)):
-        assert pool(x).shape == (x.shape[0], x.shape[1] // 2, x.shape[-1])
+    x = torch.randn(BATCH_SIZE, SEQ_LEN, HIDDEN_DIM)
+    for pool in (TemporalMaxPooling, TemporalAvgPooling):
+        assert pool(KERNEL_SIZE)(x).shape == EXPECTED_SHAPE
