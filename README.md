@@ -46,8 +46,8 @@ assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 
 Models can be trained using the command line interface (CLI) provided by `train.py`.
 
-Note: development requirements must be installed prior to training. This can be
-accomplished by running `pip install -r dev_requirements.txt`.
+Note: development requirements must be installed prior to training. <br> 
+This can be accomplished by running `pip install -r dev_requirements.txt`.
 
 ### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
