@@ -185,12 +185,12 @@ class S4Layer(nn.Module):
 
         g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
         c = 2.0 / (1.0 + self.omega_l)
-        cauchy_denominator = g.unsqueeze(-1) - self.lambda_.unsqueeze(1)
+        cauchy_dot_denominator = g.unsqueeze(-1) - self.lambda_.unsqueeze(1)
 
-        k00 = _cauchy_dot(a0 * b0, denominator=cauchy_denominator)
-        k01 = _cauchy_dot(a0 * b1, denominator=cauchy_denominator)
-        k10 = _cauchy_dot(a1 * b0, denominator=cauchy_denominator)
-        k11 = _cauchy_dot(a1 * b1, denominator=cauchy_denominator)
+        k00 = _cauchy_dot(a0 * b0, denominator=cauchy_dot_denominator)
+        k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
+        k10 = _cauchy_dot(a1 * b0, denominator=cauchy_dot_denominator)
+        k11 = _cauchy_dot(a1 * b1, denominator=cauchy_dot_denominator)
         return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
 
     @property
