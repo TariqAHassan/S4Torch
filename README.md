@@ -55,12 +55,13 @@ Models can be trained using the command line interface (CLI) provided by `train.
    Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
-#### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
+#### Sequential [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
 ```sh
 python train.py \
-  --dataset=mnist \
-  --batch_size=-1  # use largest possible batch size
+  --dataset=smnist \
+  --batch_size=-1  # use the largest possible batch size
+  
 ```
 
 **Validation Accuracy**: 98.6% after 4 epochs <br>
