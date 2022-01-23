@@ -42,9 +42,11 @@ def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tenso
 
 
 class LighteningS4Model(pl.LightningModule):
-    def __init__(self, model: S4Model) -> None:
+    def __init__(self, model: S4Model, lr: float, weight_decay: float) -> None:
         super().__init__()
         self.model = model
+        self.lr = lr
+        self.weight_decay = weight_decay
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -85,20 +87,22 @@ class LighteningS4Model(pl.LightningModule):
             [
                 {
                     "params": self.model.blocks.parameters(),
-                    "lr": 1e-3,
+                    "lr": self.lr,
                     "weight_decay": 0.0,
                 },
                 {"params": self.model.encoder.parameters()},
                 {"params": self.model.decoder.parameters()},
             ],
-            lr=1e-3,
-            weight_decay=0.01,
+            lr=self.lr,
+            weight_decay=self.weight_decay,
         )
 
 
 def main(
     dataset: str,
     batch_size: int,
+    lr: float = 1e-3,
+    weight_decay: float = 0.01,
     d_model: int = 128,
     n_blocks: int = 6,
     n: int = 64,
@@ -115,6 +119,8 @@ def main(
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
+        lr (float): learning rate for the model
+        weight_decay (float): weight decay to use with optimizer
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
@@ -145,7 +151,7 @@ def main(
         train_lambda=train_lambda,
     )
 
-    pl_s4model = LighteningS4Model(s4model)
+    pl_s4model = LighteningS4Model(s4model, lr=lr, weight_decay=weight_decay)
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
     trainer = pl.Trainer(gpus=gpus or (torch.cuda.device_count() or None))
