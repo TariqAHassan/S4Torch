@@ -145,11 +145,11 @@ def main(
         train_lambda=train_lambda,
     )
 
-    pl_s4_model = LighteningS4Model(s4model)
+    pl_s4model = LighteningS4Model(s4model)
     dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
 
     trainer = pl.Trainer(gpus=gpus or (torch.cuda.device_count() or None))
-    trainer.fit(pl_s4_model, dl_train, dl_val)
+    trainer.fit(pl_s4model, dl_train, dl_val)
 
 
 if __name__ == "__main__":
