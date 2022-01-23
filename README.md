@@ -105,7 +105,7 @@ python train.py \
 
 Note that the `speechcommands10` dataset uses a subset of 10 speech commands, as 
 in the [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4.
-If you would like to train against the entire Speech Commands dataset, you can specify `--dataset=speechcommands`.
+The entire speech commands dataset can be used by specifying `--dataset=speechcommands`.
 
 ## Components
 
@@ -151,8 +151,8 @@ assert s4block(u).shape == u.shape
 
 ## References
 
-The S4 model was developed by Albert Gu, Karan Goel, and Christopher Ré. 
-If you find this repository useful, please cite their (extremely impressive) paper:
+The S4 model was developed by Albert Gu, Karan Goel, and Christopher Ré.
+If you find the S4 model useful, please cite their impressive paper:
 
 ```bibtex
 @misc{gu2021efficiently,
