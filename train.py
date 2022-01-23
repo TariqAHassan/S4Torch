@@ -80,7 +80,9 @@ class LighteningS4Model(pl.LightningModule):
         batch: Tuple[torch.Tensor, torch.Tensor],
         batch_idx: int,
     ) -> torch.Tensor:
-        return self._step(batch, validation=True)
+        loss = self._step(batch, validation=True)
+        self.log("val_loss", loss)
+        return loss
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.AdamW(
