@@ -17,8 +17,11 @@ from s4torch import S4Model
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
-def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
-    return (logits.argmax(dim=-1) == labels).float().mean()
+def _get_dataset_wrapper(name: str) -> DatasetWrapper:
+    if name in _DATASETS:
+        return _DATASETS[name]
+    else:
+        raise KeyError(f"Unknown dataset '{name}'")
 
 
 def _to_sequence(x: torch.Tensor) -> torch.Tensor:
@@ -34,11 +37,8 @@ def _to_sequence(x: torch.Tensor) -> torch.Tensor:
         raise IndexError(f"Expected 2D, 3D or 4D data, got {x.ndim}D")
 
 
-def _get_dataset_wrapper(name: str) -> DatasetWrapper:
-    if name in _DATASETS:
-        return _DATASETS[name]
-    else:
-        raise KeyError(f"Unknown dataset '{name}'")
+def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+    return (logits.argmax(dim=-1) == labels).float().mean()
 
 
 class LighteningS4Model(pl.LightningModule):
