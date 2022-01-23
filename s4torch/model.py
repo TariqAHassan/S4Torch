@@ -61,7 +61,6 @@ class S4Model(nn.Module):
         pooling (TemporalAvgPooling, TemporalMaxPooling, optional): pooling
             method to use following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
-        **kwargs (Keyword Args): Keyword arguments to pass to ``S4Block()``.
 
     """
 
@@ -76,7 +75,6 @@ class S4Model(nn.Module):
         collapse: bool = False,
         pooling: Optional[TemporalAvgPooling | TemporalMaxPooling] = None,
         p_dropout: float = 0.0,
-        **kwargs: Any,
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -105,7 +103,6 @@ class S4Model(nn.Module):
                         n=n,
                         l_max=seq_len,
                         p_dropout=p_dropout,
-                        **kwargs,
                     ),
                     pooling if pooling and pool_ok else nn.Identity(),
                 )

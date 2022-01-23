@@ -27,8 +27,6 @@ class S4Block(nn.Module):
             ``S4Layer()``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
-        **kwargs (Keyword Args): Keyword arguments to be passed to
-            ``S4Layer()``.
 
     """
 
@@ -40,7 +38,6 @@ class S4Block(nn.Module):
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
         norm_type: Optional[str] = "layer",
-        **kwargs: Any,
     ) -> None:
         super().__init__()
         self.d_model = d_model
@@ -51,7 +48,7 @@ class S4Block(nn.Module):
         self.p_dropout = p_dropout
 
         self.pipeline = nn.Sequential(
-            S4Layer(d_model, n=n, l_max=l_max, **kwargs),
+            S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
