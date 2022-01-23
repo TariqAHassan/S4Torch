@@ -60,7 +60,7 @@ class LighteningS4Model(pl.LightningModule):
         lr_s4: float,
         min_lr: float = 1e-6,
         weight_decay: float = 0.0,
-        patience: int = 10,
+        patience: int = 5,
     ) -> None:
         super().__init__()
         self.model = model
