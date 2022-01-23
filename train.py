@@ -6,11 +6,15 @@
 from __future__ import annotations
 
 import math
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional, Tuple, Type
 
 import fire
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
@@ -20,6 +24,27 @@ from s4torch import S4Model
 from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
+_DEFAULT_OUTPUT_DIR = Path("~/s4-output")
+
+
+class _OutputPath:
+    def __init__(self, output_dir: str, run_name: str) -> None:
+        self.output_dir = (
+            (Path(output_dir) or _DEFAULT_OUTPUT_DIR).expanduser().absolute()
+        )
+        self.run_name = run_name
+
+    @property
+    def logs_path(self) -> Path:
+        path = self.output_dir.joinpath("logs")
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def checkpoints_path(self) -> Path:
+        path = self.output_dir.joinpath(f"checkpoints/{self.run_name}")
+        path.mkdir(parents=True, exist_ok=True)
+        return path
 
 
 def _get_dataset_wrapper(name: str) -> Type[DatasetWrapper]:
@@ -151,6 +176,7 @@ def main(
     # Dataset
     dataset: str,
     batch_size: int,
+    val_prop: float = 0.1,
     # Model
     d_model: int = 128,
     n_blocks: int = 6,
@@ -168,7 +194,9 @@ def main(
     accumulate_grad: int = 1,
     patience: int = 5,
     gpus: int = -1,
-    val_prop: float = 0.1,
+    # Auxiliary
+    output_dir: Optional[str] = None,
+    save_top_k: int = 0,
     seed: int = 1234,
 ) -> None:
     f"""Train a S4 model.
@@ -180,6 +208,7 @@ def main(
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
+        val_prop (float): proportion of the data to use for validation
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
         s4_n (int): dimensionality of the state representation
@@ -199,7 +228,10 @@ def main(
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
-        val_prop (float): proportion of the data to use for validation
+        output_dir (str, optional): directory where output (logs and checkpoints)
+            will be saved. If ``None``, ``~/sr-output`` will be used.
+        save_top_k (int): save top k models, as determined by the ``"val_acc"``
+            metrics. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
 
     Returns:
@@ -207,6 +239,10 @@ def main(
 
     """
     seed_everything(seed, workers=True)
+    start_time = datetime.utcnow().isoformat()
+    run_name = f"s4-model-{start_time}"
+    output_path = _OutputPath(output_dir, run_name=run_name)
+
     dataset_wrapper = _get_dataset_wrapper(dataset.strip())(
         val_prop=val_prop,
         seed=seed,
@@ -231,6 +267,13 @@ def main(
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
+        logger=TensorBoardLogger(output_path.logs_path, name=run_name),
+        callbacks=ModelCheckpoint(
+            dirpath=output_path.checkpoints_path,
+            filename=run_name + "-{epoch:02d}-{val_acc:.2f}",
+            monitor="val_acc",
+            save_top_k=save_top_k,
+        ),
     ).fit(
         LighteningS4Model(
             s4model,
