@@ -3,13 +3,18 @@
     1D MNIST Classification
 
 """
-from typing import Tuple
+import math
+from typing import Optional, Tuple
 
+import fire
 import pytorch_lightning as pl
 import torch
 from torch import nn
 
+from experiments.data.wrappers import DatasetWrapper
 from s4torch import S4Model
+
+_DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
 def _compute_acc(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
@@ -29,21 +34,18 @@ def _to_sequence(x: torch.Tensor) -> torch.Tensor:
         raise IndexError(f"Expected 2D, 3D or 4D data, got {x.ndim}D")
 
 
-class LighteningS4Model(pl.LightningModule):
-    def __init__(self, n_classes: int) -> None:
-        super().__init__()
-        self.n_classes = n_classes
+def _get_dataset_wrapper(name: str) -> DatasetWrapper:
+    if name in _DATASETS:
+        return _DATASETS[name]
+    else:
+        raise KeyError(f"Unknwon dataet '{name}'")
 
-        self.model = S4Model(
-            d_input=1,
-            d_model=128,
-            d_output=n_classes,
-            n_blocks=6,
-            n=64,
-            l_max=28 * 28,
-            collapse=True,
-            p_dropout=0.2,
-        )
+
+class LighteningS4Model(pl.LightningModule):
+    def __init__(self, model: S4Model) -> None:
+        super().__init__()
+        self.model = model
+
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
@@ -94,5 +96,54 @@ class LighteningS4Model(pl.LightningModule):
         )
 
 
+def main(
+    dataset: str,
+    d_model: int = 128,
+    n_blocks: int = 6,
+    n: int = 64,
+    p_dropout: float = 0.2,
+    train_p: bool = False,
+    train_q: bool = False,
+    train_lambda: bool = False,
+    gpus: Optional[int] = None,
+) -> None:
+    f"""Train model.
+
+    Args:
+        dataset (str): datasets to train against. Options: {','.join(sorted(_DATASETS))}
+        d_model (int): number of internal features
+        n_blocks (int): number of S4 layers to construct
+        n (int): dimensionality of the state representation
+        p_dropout (float): probability of elements being set to zero
+        train_p (bool): if ``True`` train the ``p`` tensor
+        train_q (bool): if ``True`` train the ``q`` tensor
+        train_lambda (bool): if ``True`` train the ``lambda`` tensor
+        gpus (int): number of GPUs to use. If ``None``, use all available GPUs.
+
+    Returns:
+        None
+
+    """
+    dataset_wrapper = _get_dataset_wrapper(dataset)
+
+    s4model = S4Model(
+        d_input=dataset_wrapper.channels,
+        d_model=d_model,
+        d_output=dataset_wrapper.n_classes,
+        n_blocks=n_blocks,
+        n=n,
+        l_max=math.prod(dataset_wrapper.shape),
+        collapse=True,  # classification
+        p_dropout=p_dropout,
+        train_p=train_p,
+        train_q=train_q,
+        train_lambda=train_lambda,
+    )
+
+    pl_s4_model = LighteningS4Model(s4model)
+    trainer = pl.Trainer(gpus=gpus or (torch.cuda.device_count() or None))
+    trainer.fit(pl_s4_model, dl_train, dl_val)
+
+
 if __name__ == "__main__":
-    pass
+    fire.Fire(main)
