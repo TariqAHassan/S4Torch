@@ -85,6 +85,11 @@ class DatasetWrapper:
         return len(self.classes)
 
     @property
+    def channels(self) -> int:
+        """Channels in the data, as returned by the dataset."""
+        raise NotImplementedError()
+
+    @property
     def shape(self) -> tuple[int, ...]:
         """Shape of the data in the dataset."""
         raise NotImplementedError()
@@ -144,8 +149,12 @@ class MnistWrapper(DatasetWrapper):
         return self.dataset.classes  # noqa
 
     @property
+    def channels(self) -> int:
+        return 1
+
+    @property
     def shape(self) -> tuple[int, ...]:
-        return 1, 28, 28
+        return 28, 28
 
 
 class SpeechCommand10Wrapper(DatasetWrapper):
@@ -160,6 +169,10 @@ class SpeechCommand10Wrapper(DatasetWrapper):
     @property
     def classes(self) -> list[str]:
         return self.dataset.classes  # noqa
+
+    @property
+    def channels(self) -> int:
+        return 0
 
     @property
     def shape(self) -> tuple[int, ...]:
