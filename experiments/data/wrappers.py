@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
-from experiments.data.datasets import SpeechCommandsDataset10
+from experiments.data.datasets import SpeechCommands, SpeechCommands10
 
 
 def _train_val_split(
@@ -157,12 +157,34 @@ class MnistWrapper(DatasetWrapper):
         return 28, 28
 
 
-class SpeechCommand10Wrapper(DatasetWrapper):
+class SpeechCommandWrapper(DatasetWrapper):
     NAME: str = "SPEECHCOMMANDS"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
-            dataset=partial(SpeechCommandsDataset10, download=True),
+            dataset=partial(SpeechCommands, download=True),
+            **kwargs,
+        )
+
+    @property
+    def classes(self) -> list[str]:
+        return self.dataset.classes  # noqa
+
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (self.dataset.SEGMENT_SIZE,)  # noqa
+
+
+class SpeechCommand10Wrapper(DatasetWrapper):
+    NAME: str = "SPEECHCOMMANDS10"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            dataset=partial(SpeechCommands10, download=True),
             **kwargs,
         )
 
