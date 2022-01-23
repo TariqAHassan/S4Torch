@@ -114,6 +114,7 @@ def main(
     train_q: bool = False,
     train_lambda: bool = False,
     swa: bool = False,
+    accumulate_grad: int = 1,
     gpus: Optional[int] = None,
     val_prop: float = 0.1,
     seed: int = 1234,
@@ -134,6 +135,7 @@ def main(
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         swa (bool): if ``True`` enable stochastic weight averaging.
+        accumulate_grad (int): number of batches to accumulate gradient over. 
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
         seed (int): random seed for training
@@ -168,6 +170,7 @@ def main(
     trainer = pl.Trainer(
         gpus=gpus or (torch.cuda.device_count() or None),
         stochastic_weight_avg=swa,
+        accumulate_grad_batches=accumulate_grad,
     )
     trainer.fit(pl_s4model, dl_train, dl_val)
 
