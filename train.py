@@ -159,7 +159,7 @@ def main(
 
     Args:
         dataset (str): datasets to train against. Available options:
-            {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}. 
+            {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}.
             Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
         val_prop (float): proportion of the data to use for validation
@@ -220,7 +220,7 @@ def main(
         logger=TensorBoardLogger(output_paths.logs, name=run_name),
         callbacks=ModelCheckpoint(
             dirpath=output_paths.checkpoints,
-            filename=run_name + "-{epoch:02d}-{val_acc:.2f}",
+            filename=f"{run_name}-{'{epoch:02d}-{val_acc:.2f}'}",
             monitor="val_acc",
             save_top_k=save_top_k,
         ),
