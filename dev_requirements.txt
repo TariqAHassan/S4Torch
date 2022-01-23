@@ -1,4 +1,5 @@
 black==21.12b0
+fire==0.4.0
 isort==5.10.1
 pytorch-lightning==1.5.9
 torchvision==0.11.2
