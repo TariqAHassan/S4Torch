@@ -115,9 +115,9 @@ def main(
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
-        train_p (bool): if ``True`` train the ``p`` tensor
-        train_q (bool): if ``True`` train the ``q`` tensor
-        train_lambda (bool): if ``True`` train the ``lambda`` tensor
+        train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
+        train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
+        train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         gpus (int): number of GPUs to use. If ``None``, use all available GPUs.
 
     Returns:
