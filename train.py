@@ -18,9 +18,9 @@ _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
 def _get_dataset_wrapper(name: str) -> DatasetWrapper:
-    if name in _DATASETS:
-        return _DATASETS[name]
-    else:
+    try:
+        return _DATASETS[name.strip().upper()]
+    except KeyError:
         raise KeyError(f"Unknown dataset '{name}'")
 
 
@@ -111,7 +111,8 @@ def main(
     f"""Train S4 model.
 
     Args:
-        dataset (str): datasets to train against. Options: {', '.join(sorted(_DATASETS))}.
+        dataset (str): datasets to train against. Available options:
+            {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
