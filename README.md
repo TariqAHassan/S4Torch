@@ -78,7 +78,7 @@ python train.py \
 **Validation Accuracy**: TBD <br>
 **Speed**: TBD
 
-Note: average pooling is used to reduce memory usage, and is not used in the original implementation. 
+Note: average pooling is used to reduce memory usage, and is not present in the original implementation. 
 
 #### [SpeechCommands](https://pytorch.org/audio/stable/datasets.html#torchaudio.datasets.SPEECHCOMMANDS)
 
