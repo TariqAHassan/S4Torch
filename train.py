@@ -58,7 +58,6 @@ class LighteningS4Model(pl.LightningModule):
     def __init__(self, model: S4Model, hparams: Namespace) -> None:
         super().__init__()
         self.model = model
-
         self.save_hyperparameters(hparams, ignore=("model", "hparams"))
 
         self.loss = nn.CrossEntropyLoss()
