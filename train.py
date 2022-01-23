@@ -167,7 +167,7 @@ def main(
         s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
         pooling (str, optional): pooling method to use. Options: ``None``,
-            ``"max_KERNEL_SIZE"``, ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
+            ``max_KERNEL_SIZE``, ``avg_KERNEL_SIZE``. Example: ``avg_2``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         max_epochs (int, optional): maximum number of epochs to train for
@@ -182,7 +182,7 @@ def main(
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
         output_dir (str): directory where output (logs and checkpoints) will be saved
-        save_top_k (int): save top k models, as determined by the ``"val_acc"``
+        save_top_k (int): save top k models, as determined by the ``val_acc``
             metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
 
