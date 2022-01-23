@@ -228,7 +228,7 @@ def main(
 
     pl.Trainer(
         max_epochs=max_epochs,
-        gpus=(torch.cuda.device_count() or None) if gpus == -1 else gpus,
+        gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
     ).fit(
