@@ -61,20 +61,14 @@ def _make_buffers(n: int) -> list[torch.Tensor]:
     return [torch.from_numpy(i) for i in (p, q, lambda_)]
 
 
-def _cauchy_dot(
-    v: torch.Tensor,
-    g: torch.Tensor,
-    lambd: torch.Tensor,
-) -> torch.Tensor:
+def _cauchy_dot(v: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
     if v.ndim == 1:
         v = v.unsqueeze(0).unsqueeze(0)
     elif v.ndim == 2:
         v = v.unsqueeze(1)
     elif v.ndim != 3:
         raise IndexError(f"Expected `v` to be 1D, 2D or 3D, got {v.ndim}D")
-
-    denom = torch.stack([i - lambd[None, ...] for i in g[..., :, None]])
-    return (v / denom).sum(dim=-1)
+    return (v / denominator).sum(dim=-1)
 
 
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
@@ -138,7 +132,11 @@ class S4Layer(nn.Module):
         p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_buffers(n))
         self._register_tensor("p", tensor=p, trainable=train_p)
         self._register_tensor("q", tensor=q, trainable=train_q)
-        self._register_tensor("lambda_", tensor=lambda_, trainable=train_lambda)
+        self._register_tensor(
+            "lambda_",
+            tensor=lambda_.unsqueeze(0),
+            trainable=train_lambda,
+        )
         self._register_tensor(
             "omega_l",
             tensor=_make_omega_l(self.l_max, dtype=complex_dtype),
@@ -187,11 +185,12 @@ class S4Layer(nn.Module):
 
         g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
         c = 2.0 / (1.0 + self.omega_l)
+        cauchy_denominator = torch.stack([i - self.lambda_ for i in g[..., None]])
 
-        k00 = _cauchy_dot(a0 * b0, g=g, lambd=self.lambda_)
-        k01 = _cauchy_dot(a0 * b1, g=g, lambd=self.lambda_)
-        k10 = _cauchy_dot(a1 * b0, g=g, lambd=self.lambda_)
-        k11 = _cauchy_dot(a1 * b1, g=g, lambd=self.lambda_)
+        k00 = _cauchy_dot(a0 * b0, denominator=cauchy_denominator)
+        k01 = _cauchy_dot(a0 * b1, denominator=cauchy_denominator)
+        k10 = _cauchy_dot(a1 * b0, denominator=cauchy_denominator)
+        k11 = _cauchy_dot(a1 * b1, denominator=cauchy_denominator)
         return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
 
     @property
