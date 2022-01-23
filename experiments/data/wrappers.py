@@ -3,6 +3,8 @@
     Dataset Wrappers
 
 """
+from __future__ import annotations
+
 from functools import partial
 from multiprocessing import cpu_count
 from pathlib import Path
@@ -11,7 +13,7 @@ from typing import Any, Optional, Type
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
-from torchvision.datasets import MNIST
+from torchvision.datasets import CIFAR10, MNIST
 
 from experiments.data.datasets import SpeechCommands, SpeechCommands10
 
@@ -75,7 +77,7 @@ class DatasetWrapper:
         return path
 
     @property
-    def classes(self) -> list[str]:
+    def classes(self) -> list[int | str]:
         """Name of each class in the dataset."""
         raise NotImplementedError()
 
@@ -155,6 +157,28 @@ class MnistWrapper(DatasetWrapper):
     @property
     def shape(self) -> tuple[int, ...]:
         return 28, 28
+
+
+class CIFAR10Wrapper(DatasetWrapper):
+    NAME: str = "CIFAR10"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            partial(CIFAR10, download=True, transform=transforms.ToTensor()),
+            **kwargs,
+        )
+
+    @property
+    def classes(self) -> list[int]:
+        return list(range(10))
+
+    @property
+    def channels(self) -> int:
+        return 3
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return 32, 32
 
 
 class SpeechCommandWrapper(DatasetWrapper):
