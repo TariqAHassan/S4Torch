@@ -54,22 +54,11 @@ def _parse_pooling(
 
 
 class LighteningS4Model(pl.LightningModule):
-    def __init__(
-        self,
-        model: S4Model,
-        lr: float,
-        lr_s4: float,
-        min_lr: float = 1e-6,
-        weight_decay: float = 0.0,
-        patience: int = 5,
-    ) -> None:
+    def __init__(self, model: S4Model, hparams: dict[str, Any]) -> None:
         super().__init__()
         self.model = model
-        self.lr = lr
-        self.lr_s4 = lr_s4
-        self.min_lr = min_lr
-        self.weight_decay = weight_decay
-        self.patience = patience
+
+        self.save_hyperparameters(hparams)
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -112,19 +101,19 @@ class LighteningS4Model(pl.LightningModule):
             [
                 {
                     "params": self.model.blocks.parameters(),
-                    "lr": self.lr_s4,
+                    "lr": self.hparams.lr_s4,
                     "weight_decay": 0.0,
                 },
                 {"params": self.model.encoder.parameters()},
                 {"params": self.model.decoder.parameters()},
             ],
             lr=self.lr,
-            weight_decay=self.weight_decay,
+            weight_decay=self.hparams.weight_decay,
         )
         scheduler = ReduceLROnPlateau(
             optimizer,
-            patience=self.patience,
-            min_lr=self.min_lr,
+            patience=self.hparams.patience,
+            min_lr=self.hparams.min_lr,
         )
         return {
             "optimizer": optimizer,
@@ -222,15 +211,7 @@ def main(
         norm_type=norm_type,
     )
 
-    pl_model = LighteningS4Model(
-        s4model,
-        lr=lr,
-        lr_s4=lr_s4,
-        min_lr=min_lr,
-        weight_decay=weight_decay,
-        patience=patience,
-    )
-    pl_model.save_hyperparameters(hparams)
+    pl_model = LighteningS4Model(s4model, hparams)
 
     pl.Trainer(
         max_epochs=max_epochs,
