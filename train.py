@@ -20,7 +20,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
-from experiments.utils import OutputPath, to_sequence
+from experiments.utils import OutputPaths, to_sequence
 from s4torch import S4Model
 from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 
@@ -203,7 +203,7 @@ def main(
     """
     seed_everything(seed, workers=True)
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
-    output_path = OutputPath(output_dir, run_name=run_name)
+    output_paths = OutputPaths(output_dir, run_name=run_name)
 
     ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
     dl_train, dl_val = ds_wrapper.get_dataloaders(batch_size)
@@ -226,9 +226,9 @@ def main(
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
-        logger=TensorBoardLogger(output_path.logs_path, name=run_name),
+        logger=TensorBoardLogger(output_paths.logs, name=run_name),
         callbacks=ModelCheckpoint(
-            dirpath=output_path.checkpoints_path,
+            dirpath=output_paths.checkpoints,
             filename=run_name + "-{epoch:02d}-{val_acc:.2f}",
             monitor="val_acc",
             save_top_k=save_top_k,

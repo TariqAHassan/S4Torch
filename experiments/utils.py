@@ -23,7 +23,7 @@ def to_sequence(x: torch.Tensor) -> torch.Tensor:
         raise IndexError(f"Expected 2D, 3D or 4D data, got {x.ndim}D")
 
 
-class OutputPath:
+class OutputPaths:
     def __init__(self, output_dir: str, run_name: str) -> None:
         self.output_dir = (
             (Path(output_dir) or _DEFAULT_OUTPUT_DIR).expanduser().absolute()
@@ -31,13 +31,13 @@ class OutputPath:
         self.run_name = run_name
 
     @property
-    def logs_path(self) -> Path:
+    def logs(self) -> Path:
         path = self.output_dir.joinpath("logs")
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
-    def checkpoints_path(self) -> Path:
+    def checkpoints(self) -> Path:
         path = self.output_dir.joinpath(f"checkpoints/{self.run_name}")
         path.mkdir(parents=True, exist_ok=True)
         return path
