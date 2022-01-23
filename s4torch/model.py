@@ -59,7 +59,7 @@ class S4Model(nn.Module):
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
         pooling (TemporalAvgPooling, TemporalMaxPooling, optional): pooling
-            method to use following ``S4Block()``.
+            method to use following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         **kwargs (Keyword Args): Keyword arguments to be passed to
             ``S4Block()``.
