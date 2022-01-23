@@ -98,6 +98,7 @@ class LighteningS4Model(pl.LightningModule):
 
 def main(
     dataset: str,
+    batch_size: int,
     d_model: int = 128,
     n_blocks: int = 6,
     n: int = 64,
@@ -111,6 +112,7 @@ def main(
 
     Args:
         dataset (str): datasets to train against. Options: {', '.join(sorted(_DATASETS))}.
+        batch_size (int): number of subprocesses to use for data loading
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
@@ -141,6 +143,8 @@ def main(
     )
 
     pl_s4_model = LighteningS4Model(s4model)
+    dl_train, dl_val = dataset_wrapper.get_dataloaders(batch_size)
+
     trainer = pl.Trainer(gpus=gpus or (torch.cuda.device_count() or None))
     trainer.fit(pl_s4_model, dl_train, dl_val)
 
