@@ -14,6 +14,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, MNIST
+from torch.cuda import is_available as cuda_available
 
 from experiments.data.datasets import SpeechCommands, SpeechCommands10
 
@@ -127,7 +128,7 @@ class DatasetWrapper:
                 batch_size=batch_size,
                 shuffle=shuffle,
                 num_workers=num_workers,
-                pin_memory=pin_memory or torch.cuda.is_available(),
+                pin_memory=cuda_available() if pin_memory is None else pin_memory,
                 **kwargs,
             )
 
