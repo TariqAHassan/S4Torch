@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any, Optional, Type
 
 import torch
+from torch.cuda import is_available as cuda_available
 from torch.utils.data import DataLoader, Dataset, random_split
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, MNIST
-from torch.cuda import is_available as cuda_available
 
 from experiments.data.datasets import SpeechCommands, SpeechCommands10
 
