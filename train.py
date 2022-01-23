@@ -130,7 +130,7 @@ def main(
     dataset_wrapper = _get_dataset_wrapper(dataset.strip())
 
     s4model = S4Model(
-        d_input=dataset_wrapper.channels,
+        d_input=max(1, dataset_wrapper.channels),
         d_model=d_model,
         d_output=dataset_wrapper.n_classes,
         n_blocks=n_blocks,
