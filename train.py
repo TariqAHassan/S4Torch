@@ -22,8 +22,8 @@ def _compute_acc(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
 
 
 def _to_sequence(x: torch.Tensor) -> torch.Tensor:
-    if x.ndim == 1:
-        raise IndexError("1D input not supported")
+    if x.ndim <= 1:
+        raise IndexError(f"Input must be at least 2D, got {x.ndim}D")
     elif x.ndim == 2:
         return x.unsqueeze(-1)
     elif x.ndim == 3:
