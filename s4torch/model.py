@@ -26,7 +26,7 @@ def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
 def _seq_length_schedule(
     n_blocks: int,
     l_max: int,
-    pool_kernel: Optional[tuple[int]],
+    pool_kernel: Optional[int | tuple[int]],
 ) -> list[tuple[int, int]]:
     ppk = _parse_pool_kernel(pool_kernel)
 
