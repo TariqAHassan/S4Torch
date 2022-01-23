@@ -117,11 +117,7 @@ class LighteningS4Model(pl.LightningModule):
         )
         return {
             "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_acc",
-                "frequency": 1,
-            },
+            "lr_scheduler": {"scheduler": scheduler, "monitor": "val_acc"},
         }
 
 
