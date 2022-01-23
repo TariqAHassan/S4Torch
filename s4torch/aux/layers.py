@@ -20,7 +20,7 @@ class TemporalBasePooling:
     @property
     def type(self) -> str:
         (type,) = re.findall(r"Temporal(.*)Pooling", string=self.__class__.__name__)
-        return type
+        return type.lower()
 
 
 class TemporalMaxPooling(TemporalBasePooling, nn.MaxPool1d):
