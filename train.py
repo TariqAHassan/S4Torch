@@ -136,9 +136,6 @@ def main(
     n_blocks: int = 6,
     n: int = 64,
     p_dropout: float = 0.2,
-    train_p: bool = False,
-    train_q: bool = False,
-    train_lambda: bool = False,
     pooling: Optional[str] = None,
     norm_type: Optional[str] = "layer",
     swa: bool = False,
@@ -161,9 +158,6 @@ def main(
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
-        train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
-        train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
-        train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         pooling (str, optional): pooling method to use. Options: ``None``, ``"max_KERNEL_SIZE"``,
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         norm_type (str, optional): type of normalization to use.
@@ -193,9 +187,6 @@ def main(
         l_max=math.prod(dataset_wrapper.shape),
         collapse=True,  # classification
         p_dropout=p_dropout,
-        train_p=train_p,
-        train_q=train_q,
-        train_lambda=train_lambda,
         pooling=_parse_pooling(pooling),
         norm_type=norm_type,
     )
