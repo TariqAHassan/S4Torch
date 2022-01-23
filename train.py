@@ -110,7 +110,7 @@ def main(
     f"""Train model.
 
     Args:
-        dataset (str): datasets to train against. Options: {','.join(sorted(_DATASETS))}.
+        dataset (str): datasets to train against. Options: {', '.join(sorted(_DATASETS))}.
         d_model (int): number of internal features
         n_blocks (int): number of S4 layers to construct
         n (int): dimensionality of the state representation
