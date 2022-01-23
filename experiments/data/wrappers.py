@@ -35,7 +35,7 @@ def _train_val_split(
 
 
 class DatasetWrapper:
-    """High-level Dataset Wrapper.
+    """High-level dataset wrapper.
 
     Wrapper to standardize different datasets.
 
