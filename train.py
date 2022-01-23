@@ -107,7 +107,7 @@ def main(
     train_lambda: bool = False,
     gpus: Optional[int] = None,
 ) -> None:
-    f"""Train model.
+    f"""Train S4 model.
 
     Args:
         dataset (str): datasets to train against. Options: {', '.join(sorted(_DATASETS))}.
