@@ -17,7 +17,7 @@ from s4torch import S4Model
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
-def _compute_acc(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     return (logits.argmax(dim=-1) == labels).float().mean()
 
 
@@ -60,7 +60,7 @@ class LighteningS4Model(pl.LightningModule):
         logits = self.forward(_to_sequence(x))
         self.log(
             "val_acc" if validation else "acc",
-            _compute_acc(logits.detach(), labels),
+            _compute_accuracy(logits.detach(), labels=labels),
             prog_bar=True,
         )
         loss = self.loss(logits, target=labels)
