@@ -46,6 +46,8 @@ class DatasetWrapper:
 
     """
 
+    NAME: Optional[str] = None
+
     def __init__(
         self,
         dataset: Type[Dataset],
@@ -63,14 +65,12 @@ class DatasetWrapper:
         )
 
     @property
-    def name(self) -> str:
-        """Name of the dataset wrapper. (Used in data storage path.)"""
-        return self.dataset.__class__.__name__
-
-    @property
     def root_dir(self) -> Path:
         """Directory where data is stored."""
-        path = Path("~/datasets").expanduser().joinpath(self.name)
+        if not isinstance(self.NAME, str):
+            raise TypeError("`NAME` not set")
+
+        path = Path("~/datasets").expanduser().joinpath(self.NAME)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -131,15 +131,13 @@ class DatasetWrapper:
 
 
 class MnistWrapper(DatasetWrapper):
+    NAME: str = "MNIST"
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
             partial(MNIST, download=True, transform=transforms.ToTensor()),
             **kwargs,
         )
-
-    @property
-    def name(self) -> str:
-        return "MNIST"
 
     @property
     def classes(self) -> list[str]:
@@ -151,15 +149,13 @@ class MnistWrapper(DatasetWrapper):
 
 
 class SpeechCommand10Wrapper(DatasetWrapper):
+    NAME: str = "SPEECHCOMMANDS"
+
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
             dataset=partial(SpeechCommandsDataset10, download=True),
             **kwargs,
         )
-
-    @property
-    def name(self) -> str:
-        return "SPEECHCOMMANDS"
 
     @property
     def classes(self) -> list[str]:
@@ -174,9 +170,9 @@ if __name__ == "__main__":
     mnist_wrapper = MnistWrapper()
     train_dl, val_dl = mnist_wrapper.get_dataloaders(8)
 
+    assert mnist_wrapper.NAME == "MNIST"
     assert isinstance(train_dl, DataLoader)
     assert isinstance(val_dl, DataLoader)
-    assert mnist_wrapper.name == "MNIST"
     assert isinstance(mnist_wrapper.classes, list)
     assert mnist_wrapper.n_classes == 10
     assert mnist_wrapper.shape == (1, 28, 28)
