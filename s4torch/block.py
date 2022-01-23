@@ -3,7 +3,7 @@
     S4 Block
 
 """
-from typing import Any, Optional, Type
+from typing import Optional, Type
 
 import torch
 from torch import nn
