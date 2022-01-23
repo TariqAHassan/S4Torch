@@ -167,7 +167,7 @@ def main(
         s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
         pooling (str, optional): pooling method to use. Options: ``None``,
-            ``max_KERNEL_SIZE``, ``avg_KERNEL_SIZE``. Example: ``avg_2``.
+            ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         max_epochs (int, optional): maximum number of epochs to train for
