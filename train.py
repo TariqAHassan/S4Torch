@@ -15,6 +15,7 @@ import torch
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -78,33 +79,33 @@ class LighteningS4Model(pl.LightningModule):
     def _step(
         self,
         batch: Tuple[torch.Tensor, torch.Tensor],
-        validation: bool,
-    ) -> torch.Tensor:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         x, labels = batch
         logits = self.forward(to_sequence(x))
-        self.log(
-            "val_acc" if validation else "acc",
-            value=compute_accuracy(logits.detach(), labels=labels),
-            prog_bar=True,
-        )
+        acc = compute_accuracy(logits.detach(), labels=labels)
         loss = self.loss(logits, target=labels)
-        return loss
+        return loss, acc
 
     def training_step(
         self,
         batch: Tuple[torch.Tensor, torch.Tensor],
         batch_idx: int,
     ) -> torch.Tensor:
-        return self._step(batch, validation=False)
+        loss, acc = self._step(batch)
+        self.log("acc", value=acc, prog_bar=True)
+        return loss
 
     def validation_step(
         self,
         batch: Tuple[torch.Tensor, torch.Tensor],
         batch_idx: int,
     ) -> torch.Tensor:
-        loss = self._step(batch, validation=True)
-        self.log("val_loss", value=loss)
-        return loss
+        return self._step(batch)
+
+    def validation_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
+        losses, accs = zip(*outputs)
+        self.log("val_loss", value=torch.stack(losses).mean())
+        self.log("val_acc", value=torch.stack(accs).mean())
 
     def configure_optimizers(self) -> dict[str, Any]:
         optimizer = torch.optim.AdamW(
