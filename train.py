@@ -92,9 +92,9 @@ class LighteningS4Model(pl.LightningModule):
         return self._step(batch)
 
     def validation_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        losses, accs = zip(*outputs)
-        self.log("val_loss", value=torch.stack(losses).mean())
-        self.log("val_acc", value=torch.stack(accs).mean(), prog_bar=True)
+        losses, accs = map(torch.stack, zip(*outputs))
+        self.log("val_loss", value=losses.mean())
+        self.log("val_acc", value=accs.mean(), prog_bar=True)
 
     def configure_optimizers(self) -> dict[str, Any]:
         optimizer = torch.optim.AdamW(
