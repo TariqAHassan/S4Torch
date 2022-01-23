@@ -194,7 +194,7 @@ def main(
         output_dir (str, optional): directory where output (logs and checkpoints)
             will be saved. If ``None``, ``~/sr-output`` will be used.
         save_top_k (int): save top k models, as determined by the ``"val_acc"``
-            metrics. (Defaults to ``0``, which disables model saving.)
+            metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
 
     Returns:
