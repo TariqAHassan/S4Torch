@@ -61,6 +61,8 @@ class S4Model(nn.Module):
         pooling (TemporalAvgPooling, TemporalMaxPooling, optional): pooling
             method to use following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
 
     """
 
@@ -75,6 +77,7 @@ class S4Model(nn.Module):
         collapse: bool = False,
         pooling: Optional[TemporalAvgPooling | TemporalMaxPooling] = None,
         p_dropout: float = 0.0,
+        norm_type: Optional[str] = "layer",
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -86,6 +89,7 @@ class S4Model(nn.Module):
         self.collapse = collapse
         self.pooling = pooling
         self.p_dropout = p_dropout
+        self.norm_type = norm_type
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
@@ -103,6 +107,7 @@ class S4Model(nn.Module):
                         n=n,
                         l_max=seq_len,
                         p_dropout=p_dropout,
+                        norm_type=norm_type,
                     ),
                     pooling if pooling and pool_ok else nn.Identity(),
                 )
