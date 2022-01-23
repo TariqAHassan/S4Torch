@@ -200,6 +200,7 @@ def main(
         None
 
     """
+    hparams = locals()
     seed_everything(seed, workers=True)
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
@@ -220,6 +221,16 @@ def main(
         norm_type=norm_type,
     )
 
+    pl_model = LighteningS4Model(
+        s4model,
+        lr=lr,
+        lr_s4=lr_s4,
+        min_lr=min_lr,
+        weight_decay=weight_decay,
+        patience=patience,
+    )
+    pl_model.save_hyperparameters(hparams)
+
     pl.Trainer(
         max_epochs=max_epochs,
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
@@ -232,18 +243,7 @@ def main(
             monitor="val_acc",
             save_top_k=save_top_k,
         ),
-    ).fit(
-        LighteningS4Model(
-            s4model,
-            lr=lr,
-            lr_s4=lr_s4,
-            min_lr=min_lr,
-            weight_decay=weight_decay,
-            patience=patience,
-        ),
-        train_dataloaders=dl_train,
-        val_dataloaders=dl_val,
-    )
+    ).fit(pl_model, train_dataloaders=dl_train, val_dataloaders=dl_val)
 
 
 if __name__ == "__main__":
