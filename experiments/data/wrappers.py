@@ -210,4 +210,5 @@ if __name__ == "__main__":
     assert isinstance(val_dl, DataLoader)
     assert isinstance(mnist_wrapper.classes, list)
     assert mnist_wrapper.n_classes == 10
-    assert mnist_wrapper.shape == (1, 28, 28)
+    assert mnist_wrapper.channels == 1
+    assert mnist_wrapper.shape == (28, 28)
