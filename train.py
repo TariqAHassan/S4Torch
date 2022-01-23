@@ -148,18 +148,21 @@ class LighteningS4Model(pl.LightningModule):
 
 
 def main(
+    # Dataset
     dataset: str,
     batch_size: int,
+    # Model
+    d_model: int = 128,
+    n_blocks: int = 6,
+    s4_n: int = 64,
+    p_dropout: float = 0.2,
+    pooling: Optional[str] = None,
+    norm_type: Optional[str] = "layer",
+    # Training
     lr: float = 1e-2,
     lr_s4: float = 1e-3,
     min_lr: float = 1e-6,
     weight_decay: float = 0.01,
-    d_model: int = 128,
-    n_blocks: int = 6,
-    n: int = 64,
-    p_dropout: float = 0.2,
-    pooling: Optional[str] = None,
-    norm_type: Optional[str] = "layer",
     swa: bool = False,
     accumulate_grad: int = 1,
     patience: int = 5,
@@ -176,19 +179,19 @@ def main(
         dataset (str): datasets to train against. Available options:
             {', '.join([f"'{n}'" for n in sorted(_DATASETS)])}. Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading
-        lr (float): learning rate for parameters which do not belong to S4 blocks
-        lr_s4 (float): learning rate for parameters which belong to S4 blocks
-        min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
-        weight_decay (float): weight decay to use with optimizer. (Ignored
-            for parameters which belong to S4 blocks.)
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
-        n (int): dimensionality of the state representation
+        s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
         pooling (str, optional): pooling method to use. Options: ``None``, ``"max_KERNEL_SIZE"``,
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        lr (float): learning rate for parameters which do not belong to S4 blocks
+        lr_s4 (float): learning rate for parameters which belong to S4 blocks
+        min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use.
+        weight_decay (float): weight decay to use with optimizer. (Ignored
+            for parameters which belong to S4 blocks.)
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
         patience (int): number of epochs with no improvement to wait before
@@ -213,7 +216,7 @@ def main(
         d_model=d_model,
         d_output=dataset_wrapper.n_classes,
         n_blocks=n_blocks,
-        n=n,
+        n=s4_n,
         l_max=math.prod(dataset_wrapper.shape),
         collapse=True,  # classification
         p_dropout=p_dropout,
