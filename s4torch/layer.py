@@ -185,7 +185,7 @@ class S4Layer(nn.Module):
 
         g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
         c = 2.0 / (1.0 + self.omega_l)
-        cauchy_denominator = torch.stack([i - self.lambda_ for i in g[..., None]])
+        cauchy_denominator = g.unsqueeze(-1) - self.lambda_.unsqueeze(1)
 
         k00 = _cauchy_dot(a0 * b0, denominator=cauchy_denominator)
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_denominator)
