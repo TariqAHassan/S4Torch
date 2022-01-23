@@ -3,6 +3,8 @@
     S4 Training
 
 """
+from __future__ import annotations
+
 import math
 from typing import Optional, Tuple, Type
 
@@ -14,6 +16,7 @@ from torch import nn
 
 from experiments.data.wrappers import DatasetWrapper
 from s4torch import S4Model
+from s4torch.aux.layers import TemporalAveragePooling, TemporalMaxPooling
 
 _DATASETS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
@@ -40,6 +43,21 @@ def _to_sequence(x: torch.Tensor) -> torch.Tensor:
 
 def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     return (logits.argmax(dim=-1) == labels).float().mean()
+
+
+def _parse_pooling(
+    pooling: str,
+) -> Optional[TemporalAveragePooling | TemporalMaxPooling]:
+    if pooling == "none":
+        return None
+
+    method, kernel_size = pooling.split("_")
+    if method == "avg":
+        return TemporalAveragePooling(int(kernel_size))
+    elif method == "max":
+        return TemporalMaxPooling(int(kernel_size))
+    else:
+        raise ValueError(f"Unsupported pooling method '{method}'")
 
 
 class LighteningS4Model(pl.LightningModule):
@@ -113,6 +131,7 @@ def main(
     train_p: bool = False,
     train_q: bool = False,
     train_lambda: bool = False,
+    pooling: str = "none",
     swa: bool = False,
     accumulate_grad: int = 1,
     gpus: Optional[int] = None,
@@ -134,6 +153,8 @@ def main(
         train_p (bool): if ``True`` train the ``p`` tensor in each S4 block
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
+        pooling (str): pooling method to use. Options: ``"none"``, ``"max_KERNEL_SIZE"``,
+            ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
@@ -162,6 +183,7 @@ def main(
         train_p=train_p,
         train_q=train_q,
         train_lambda=train_lambda,
+        pooling=_parse_pooling(pooling),
     )
 
     pl_s4model = LighteningS4Model(s4model, lr=lr, weight_decay=weight_decay)
