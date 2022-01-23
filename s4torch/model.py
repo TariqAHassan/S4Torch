@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Type
 
 import torch
 from torch import nn
@@ -61,6 +61,8 @@ class S4Model(nn.Module):
         pooling (TemporalBasePooling, optional): pooling method to use
             following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
+        activation (Type[nn.Module]): activation function to use after
+            ``S4Layer()``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
 
@@ -77,6 +79,7 @@ class S4Model(nn.Module):
         collapse: bool = False,
         pooling: Optional[TemporalBasePooling] = None,
         p_dropout: float = 0.0,
+        activation: Type[nn.Module] = nn.GELU,
         norm_type: Optional[str] = "layer",
     ) -> None:
         super().__init__()
@@ -107,6 +110,7 @@ class S4Model(nn.Module):
                         n=n,
                         l_max=seq_len,
                         p_dropout=p_dropout,
+                        activation=activation,
                         norm_type=norm_type,
                     ),
                     pooling if pooling and pool_ok else nn.Identity(),
