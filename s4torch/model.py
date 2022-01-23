@@ -61,8 +61,7 @@ class S4Model(nn.Module):
         pooling (TemporalAvgPooling, TemporalMaxPooling, optional): pooling
             method to use following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
-        **kwargs (Keyword Args): Keyword arguments to be passed to
-            ``S4Block()``.
+        **kwargs (Keyword Args): Keyword arguments to pass to ``S4Block()``.
 
     """
 
