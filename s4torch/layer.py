@@ -117,7 +117,7 @@ class S4Layer(nn.Module):
         p, q, lambda_ = map(lambda t: t.type(complex_dtype), _make_p_q_lambda(n))
         self.p = nn.Parameter(p)
         self.q = nn.Parameter(q)
-        self.lambda_ = nn.Parameter(lambda_.unsqueeze(0))
+        self.lambda_ = nn.Parameter(lambda_.unsqueeze(0).unsqueeze(1))
 
         self.register_buffer(
             "omega_l",
@@ -146,7 +146,7 @@ class S4Layer(nn.Module):
 
         g = torch.outer(2.0 / step, (1.0 - self.omega_l) / (1.0 + self.omega_l))
         c = 2.0 / (1.0 + self.omega_l)
-        cauchy_dot_denominator = g.unsqueeze(-1) - self.lambda_.unsqueeze(1)
+        cauchy_dot_denominator = g.unsqueeze(-1) - self.lambda_
 
         k00 = _cauchy_dot(a0 * b0, denominator=cauchy_dot_denominator)
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
