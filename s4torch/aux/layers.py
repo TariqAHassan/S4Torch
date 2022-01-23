@@ -31,6 +31,8 @@ class TemporalMaxPooling(TemporalBasePooling, nn.MaxPool1d):
         return super().forward(input.transpose(-2, -1)).transpose(-2, -1)
 
 
-class TemporalAvgPooling(TemporalBasePooling, nn.AvgPool1d):
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # noqa
-        return super().forward(input.transpose(-2, -1)).transpose(-2, -1)
+if __name__ == "__main__":
+    x = torch.randn(1, 1024, 128)
+
+    for pool in (TemporalMaxPooling(2), TemporalAvgPooling(2)):
+        assert pool(x).shape == (x.shape[0], x.shape[1] // 2, x.shape[-1])
