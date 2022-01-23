@@ -32,7 +32,7 @@ def _seq_length_schedule(
 
     schedule = list()
     for depth in range(n_blocks + 1):
-        l_max_next = max(1, l_max // ppk)
+        l_max_next = max(2, l_max // ppk)
         pool_ok = l_max_next > ppk
         schedule.append((l_max, pool_ok))
         l_max = l_max_next
