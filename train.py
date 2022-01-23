@@ -52,11 +52,11 @@ def _parse_pooling(
     if pooling is None:
         return None
 
-    method, kernel_size = pooling.split("_")
+    method, kernel_size = pooling.split("_")[0], int(pooling.split("_")[-1])
     if method == "avg":
-        return TemporalAveragePooling(int(kernel_size))
+        return TemporalAveragePooling(kernel_size)
     elif method == "max":
-        return TemporalMaxPooling(int(kernel_size))
+        return TemporalMaxPooling(kernel_size)
     else:
         raise ValueError(f"Unsupported pooling method '{method}'")
 
