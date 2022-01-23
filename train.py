@@ -195,9 +195,7 @@ def main(
     seed_everything(seed, workers=True)
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
-
     ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
-    dl_train, dl_val = ds_wrapper.get_dataloaders(batch_size)
 
     s4model = S4Model(
         d_input=max(1, ds_wrapper.channels),
@@ -226,8 +224,7 @@ def main(
         ),
     ).fit(
         LighteningS4Model(s4model, hparams=hparams),
-        train_dataloaders=dl_train,
-        val_dataloaders=dl_val,
+        *ds_wrapper.get_dataloaders(batch_size),
     )
 
 
