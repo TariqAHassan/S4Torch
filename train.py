@@ -63,14 +63,15 @@ class LighteningS4Model(pl.LightningModule):
         self.loss = nn.CrossEntropyLoss()
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
-        return self.model(u)
+        logits = self.model(u)
+        return logits.softmax(dim=-1) if self.model.collapse else logits
 
     def _step(
         self,
         batch: Tuple[torch.Tensor, torch.Tensor],
     ) -> tuple[torch.Tensor, torch.Tensor]:
         x, labels = batch
-        logits = self.forward(to_sequence(x))
+        logits = self.model(to_sequence(x))
         acc = compute_accuracy(logits.detach(), labels=labels)
         loss = self.loss(logits, target=labels)
         return loss, acc
