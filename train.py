@@ -211,7 +211,6 @@ def main(
         norm_type=norm_type,
     )
 
-    pl_model = LighteningS4Model(s4model, hparams=hparams)
     pl.Trainer(
         max_epochs=max_epochs,
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
@@ -224,7 +223,11 @@ def main(
             monitor="val_acc",
             save_top_k=save_top_k,
         ),
-    ).fit(pl_model, train_dataloaders=dl_train, val_dataloaders=dl_val)
+    ).fit(
+        LighteningS4Model(s4model, hparams=hparams),
+        train_dataloaders=dl_train,
+        val_dataloaders=dl_val,
+    )
 
 
 if __name__ == "__main__":
