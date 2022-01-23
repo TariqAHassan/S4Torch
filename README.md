@@ -47,11 +47,11 @@ assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 
 Models can be trained using the command line interface (CLI) provided by `train.py`.
 
-Notes: 
-    * development requirements must be installed prior to training, which can be accomplished by 
-      running `pip install -r dev_requirements.txt`.
-    * average pooling is used in some training sessions described below to reduce memory usage, and is 
-      not present in the original implementation. Pooling can be disabled by setting `--pooling=None`.
+**Notes**:
+ * development requirements must be installed prior to training, which can be accomplished by 
+   running `pip install -r dev_requirements.txt`.
+ * average pooling is used in some training sessions described below to reduce memory usage, and is 
+   not present in the original implementation. Pooling can be disabled by setting `--pooling=None`.
 
 #### [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
