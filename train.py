@@ -171,9 +171,9 @@ def main(
     val_prop: float = 0.1,
     seed: int = 1234,
 ) -> None:
-    f"""Train S4 model.
+    f"""Train a S4 model.
 
-    Perform S4 Model training using an ``AdamW`` optimizer and
+    Perform S4 model training using an ``AdamW`` optimizer and
     ``ReduceLROnPlateau`` learning rate scheduler.
 
     Args:
