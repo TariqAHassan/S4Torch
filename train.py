@@ -38,7 +38,7 @@ def _get_dataset_wrapper(name: str) -> DatasetWrapper:
     if name in _DATASETS:
         return _DATASETS[name]
     else:
-        raise KeyError(f"Unknwon dataet '{name}'")
+        raise KeyError(f"Unknown dataset '{name}'")
 
 
 class LighteningS4Model(pl.LightningModule):
