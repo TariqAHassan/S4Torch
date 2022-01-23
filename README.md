@@ -105,7 +105,7 @@ python train.py \
 
 Note that the `speechcommands10` dataset uses a subset of 10 speech commands, as 
 in the [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4.
-The entire speech commands dataset can be used by specifying `--dataset=speechcommands`.
+If you would like to train against all speech commands, you can use the `speechcommands` dataset.
 
 ## Components
 
