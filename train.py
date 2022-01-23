@@ -135,7 +135,7 @@ def main(
         train_q (bool): if ``True`` train the ``q`` tensor in each S4 block
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         swa (bool): if ``True`` enable stochastic weight averaging.
-        accumulate_grad (int): number of batches to accumulate gradient over. 
+        accumulate_grad (int): number of batches to accumulate gradient over.
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
         val_prop (float): proportion of the data to use for validation
         seed (int): random seed for training
