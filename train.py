@@ -46,9 +46,9 @@ def _compute_accuracy(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tenso
 
 
 def _parse_pooling(
-    pooling: str,
+    pooling: Optional[str],
 ) -> Optional[TemporalAveragePooling | TemporalMaxPooling]:
-    if pooling == "none":
+    if pooling is None:
         return None
 
     method, kernel_size = pooling.split("_")
@@ -131,7 +131,8 @@ def main(
     train_p: bool = False,
     train_q: bool = False,
     train_lambda: bool = False,
-    pooling: str = "none",
+    pooling: Optional[str] = None,
+    norm_type: Optional[str] = "layer",
     swa: bool = False,
     accumulate_grad: int = 1,
     gpus: Optional[int] = None,
@@ -155,6 +156,8 @@ def main(
         train_lambda (bool): if ``True`` train the ``lambda`` tensor in each S4 block
         pooling (str): pooling method to use. Options: ``"none"``, ``"max_KERNEL_SIZE"``,
             ``"avg_KERNEL_SIZE"``. Example: ``"avg_2"``.
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
         swa (bool): if ``True`` enable stochastic weight averaging.
         accumulate_grad (int): number of batches to accumulate gradient over.
         gpus (int, optional): number of GPUs to use. If ``None``, use all available GPUs.
@@ -184,6 +187,7 @@ def main(
         train_q=train_q,
         train_lambda=train_lambda,
         pooling=_parse_pooling(pooling),
+        norm_type=norm_type,
     )
 
     pl_s4model = LighteningS4Model(s4model, lr=lr, weight_decay=weight_decay)
