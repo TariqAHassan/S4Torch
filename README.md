@@ -57,7 +57,7 @@ python train.py --dataset=mnist --batch_size=16
 ```
 
 **Validation Accuracy**: 98.6% after 4 epochs <br>
-**Speed**: ~5.5 batches/second on a single V100 GPU
+**Speed**: ~11.5 batches/second on a single V100 GPU
 
 #### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
 
