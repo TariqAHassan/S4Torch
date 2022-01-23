@@ -13,8 +13,9 @@ from typing import Any, Optional, Type
 import torch
 from torch.cuda import is_available as cuda_available
 from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision import transforms
+from torchvision.transforms import ToTensor, Compose, Lambda
 from torchvision.datasets import CIFAR10, MNIST
+from experiments.data.transforms import build_permute_transform
 
 from experiments.data.datasets import SpeechCommands, SpeechCommands10
 
@@ -137,12 +138,18 @@ class DatasetWrapper:
         )
 
 
-class MnistWrapper(DatasetWrapper):
-    NAME: str = "MNIST"
+class SMnistWrapper(DatasetWrapper):
+    """Sequential MNIST"""
+
+    NAME: str = "SMNIST"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
-            partial(MNIST, download=True, transform=transforms.ToTensor()),
+            partial(
+                MNIST,
+                download=True,
+                transform=Compose([ToTensor(), Lambda(lambda t: t.view(-1))]),
+            ),
             **kwargs,
         )
 
@@ -156,15 +163,45 @@ class MnistWrapper(DatasetWrapper):
 
     @property
     def shape(self) -> tuple[int, ...]:
-        return 28, 28
+        return (28 * 28,)  # noqa
+
+
+class PMnistWrapper(DatasetWrapper):
+    """Permuted MNIST."""
+
+    NAME: str = "PMNIST"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            partial(
+                MNIST,
+                download=True,
+                transform=Compose([ToTensor(), build_permute_transform((28 * 28,))]),
+            ),
+            **kwargs,
+        )
+
+    @property
+    def classes(self) -> list[str]:
+        return self.dataset.classes  # noqa
+
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (28 * 28,)  # noqa
 
 
 class CIFAR10Wrapper(DatasetWrapper):
+    """CIFAR10."""
+
     NAME: str = "CIFAR10"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
-            partial(CIFAR10, download=True, transform=transforms.ToTensor()),
+            partial(CIFAR10, download=True, transform=ToTensor()),
             **kwargs,
         )
 
@@ -182,6 +219,8 @@ class CIFAR10Wrapper(DatasetWrapper):
 
 
 class SpeechCommandWrapper(DatasetWrapper):
+    """Speech Commands (Full)."""
+
     NAME: str = "SPEECHCOMMANDS"
 
     def __init__(self, **kwargs: Any) -> None:
@@ -204,6 +243,8 @@ class SpeechCommandWrapper(DatasetWrapper):
 
 
 class SpeechCommand10Wrapper(DatasetWrapper):
+    """Speech Commands (Subset)."""
+
     NAME: str = "SPEECHCOMMANDS10"
 
     def __init__(self, **kwargs: Any) -> None:
@@ -226,13 +267,13 @@ class SpeechCommand10Wrapper(DatasetWrapper):
 
 
 if __name__ == "__main__":
-    mnist_wrapper = MnistWrapper()
-    train_dl, val_dl = mnist_wrapper.get_dataloaders(8)
+    smnist_wrapper = SMnistWrapper()
+    train_dl, val_dl = smnist_wrapper.get_dataloaders(8)
 
-    assert mnist_wrapper.NAME == "MNIST"
+    assert smnist_wrapper.NAME == "MNIST"
     assert isinstance(train_dl, DataLoader)
     assert isinstance(val_dl, DataLoader)
-    assert isinstance(mnist_wrapper.classes, list)
-    assert mnist_wrapper.n_classes == 10
-    assert mnist_wrapper.channels == 1
-    assert mnist_wrapper.shape == (28, 28)
+    assert isinstance(smnist_wrapper.classes, list)
+    assert smnist_wrapper.n_classes == 10
+    assert smnist_wrapper.channels == 1
+    assert smnist_wrapper.shape == (28, 28)
