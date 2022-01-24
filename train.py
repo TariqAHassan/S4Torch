@@ -19,6 +19,7 @@ from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data import DataLoader
 
 from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
@@ -60,10 +61,19 @@ def _parse_pooling(
 
 
 class LighteningS4Model(pl.LightningModule):
-    def __init__(self, model: S4Model, hparams: Namespace) -> None:
+    def __init__(
+        self,
+        model: S4Model,
+        hparams: Namespace,
+        ds_wrapper: DatasetWrapper,
+    ) -> None:
         super().__init__()
         self.model = model
-        self.save_hyperparameters(hparams, ignore=("model", "hparams"))
+        self.save_hyperparameters(
+            hparams,
+            ignore=("model", "hparams", "ds_wrapper"),
+        )
+        self.ds_wrapper = ds_wrapper
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -125,6 +135,18 @@ class LighteningS4Model(pl.LightningModule):
             "optimizer": optimizer,
             "lr_scheduler": {"scheduler": scheduler, "monitor": "val_acc"},
         }
+
+    def train_dataloader(self) -> DataLoader:
+        return self.ds_wrapper.make_dataloader(
+            train=True,
+            batch_size=self.hparams.batch_size,
+        )
+
+    def val_dataloader(self) -> DataLoader:
+        return self.ds_wrapper.make_dataloader(
+            train=False,
+            batch_size=self.hparams.batch_size,
+        )
 
 
 def main(
@@ -217,6 +239,7 @@ def main(
             norm_type=norm_type,
         ),
         hparams=hparams,
+        ds_wrapper=ds_wrapper,
     )
 
     trainer = pl.Trainer(
@@ -234,10 +257,10 @@ def main(
         ),
     )
     if auto_scale_batch_size:
-        trainer.tune(pl_model, *ds_wrapper.get_dataloaders(1))
+        trainer.tune(pl_model)
         _verbose_print(f"Batch size: {pl_model.hparams.batch_size}", verbose=verbose)
 
-    trainer.fit(pl_model, *ds_wrapper.get_dataloaders(pl_model.hparams.batch_size))
+    trainer.fit(pl_model)
 
 
 if __name__ == "__main__":

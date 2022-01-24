@@ -13,11 +13,11 @@ from typing import Any, Optional, Type
 import torch
 from torch.cuda import is_available as cuda_available
 from torch.utils.data import DataLoader, Dataset, random_split
-from torchvision.transforms import ToTensor, Compose, Lambda
 from torchvision.datasets import CIFAR10, MNIST
-from experiments.data.transforms import build_permute_transform
+from torchvision.transforms import Compose, Lambda, ToTensor
 
 from experiments.data.datasets import SpeechCommands, SpeechCommands10
+from experiments.data.transforms import build_permute_transform
 
 
 def _train_val_split(
@@ -62,7 +62,7 @@ class DatasetWrapper:
         self.val_prop = val_prop
         self.seed = seed
 
-        self.dataset_train, self.dataset_val = _train_val_split(
+        self.ds_train, self.ds_val = _train_val_split(
             self.dataset,
             val_prop=val_prop,
             seed=seed,
@@ -98,16 +98,19 @@ class DatasetWrapper:
         """Shape of the data in the dataset."""
         raise NotImplementedError()
 
-    def get_dataloaders(
+    def make_dataloader(
         self,
+        train: bool,
         batch_size: int,
         num_workers: int = max(1, cpu_count() - 1),
         pin_memory: Optional[bool] = True,
         **kwargs: Any,
     ) -> tuple[DataLoader, Dataset]:
-        """Get training and validation dataloaders.
+        """Make a dataloaders.
 
         Args:
+            train (bool): if ``True``, return the training dataloader.
+                Otherwise, return the validation dataloader.
             batch_size (int): number of samples in each path
             num_workers (int): number of subprocesses to use for data loading
             pin_memory (bool, optional): if ``True`` tensors will be copied into
@@ -121,20 +124,13 @@ class DatasetWrapper:
                 ``(train_dataloader, validation_dataloader)``
 
         """
-
-        def make_dataloader(dataset: Dataset, shuffle: bool) -> DataLoader:
-            return DataLoader(
-                dataset=dataset,
-                batch_size=batch_size,
-                shuffle=shuffle,
-                num_workers=num_workers,
-                pin_memory=cuda_available() if pin_memory is None else pin_memory,
-                **kwargs,
-            )
-
-        return (
-            make_dataloader(self.dataset_train, shuffle=True),
-            make_dataloader(self.dataset_val, shuffle=False),
+        return DataLoader(
+            dataset=self.ds_train if train else self.ds_val,
+            batch_size=batch_size,
+            shuffle=train,
+            num_workers=num_workers,
+            pin_memory=cuda_available() if pin_memory is None else pin_memory,
+            **kwargs,
         )
 
 
