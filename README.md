@@ -51,7 +51,8 @@ Models can be trained using the command line interface (CLI) provided by `train.
  * development requirements must be installed prior to training. This can be accomplished by 
    running `pip install -r dev_requirements.txt`.
  * average pooling is used in some training sessions described below, but is not present in the original 
-   S4 implementation. The primary motivation for adding pooling was to reduce memory usage.
+   S4 implementation. The primary motivation for adding pooling was to reduce memory usage and, 
+   at least in the case of Sequential MNIST, does not appear to result in a meaningful change in accuracy. 
    Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
@@ -72,6 +73,21 @@ python train.py \
 ```
 
 **Validation Accuracy**: 98.6% after 5 epochs <br>
+**Speed**: ~10.5 batches/second
+
+```sh
+python train.py \
+  --dataset=smnist \
+  --batch_size=16 \
+  --pooling=avg_2 \
+  --max_epochs=100 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --d_model=128 \
+  --norm=layer
+```
+
+**Validation Accuracy**: 98.4% after 5 epochs <br>
 **Speed**: ~11.5 batches/second
 
 #### Permuted [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
