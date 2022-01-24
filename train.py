@@ -43,7 +43,7 @@ def _parse_pooling(
     if pooling is None:
         return None
     elif pooling.count("_") != 1:
-        raise ValueError(f"`pooling` expected one underscore, got '{pooling}'")
+        raise ValueError(f"Expected one underscore, got '{pooling}'")
 
     method, digit = pooling.split("_")
     kernel_size = int(digit)
