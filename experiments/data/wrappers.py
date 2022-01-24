@@ -271,5 +271,5 @@ if __name__ == "__main__":
     assert isinstance(val_dl, DataLoader)
     assert isinstance(smnist_wrapper.classes, list)
     assert smnist_wrapper.n_classes == 10
-    assert smnist_wrapper.channels == 1
+    assert smnist_wrapper.channels == 0
     assert smnist_wrapper.shape == (28 * 28,)
