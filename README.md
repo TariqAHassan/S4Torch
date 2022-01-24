@@ -200,7 +200,7 @@ If you find the S4 model useful, please cite their impressive paper:
 ```bibtex
 @misc{gu2021efficiently,
     title={Efficiently Modeling Long Sequences with Structured State Spaces}, 
-    author={Albert Gu and Karan Goel and Christopher Ré},
+    author={Gu, Albert and Goel, Karan and R{\'e}, Christopher},
     year={2021},
     eprint={2111.00396},
     archivePrefix={arXiv},
