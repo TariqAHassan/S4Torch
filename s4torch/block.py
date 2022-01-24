@@ -12,6 +12,17 @@ from s4torch.aux.norms import TemporalBatchNorm1D
 from s4torch.layer import S4Layer
 
 
+def _parse_norm_type(norm_type: Optional[str]) -> nn.Module:
+    if norm_type is None:
+        return nn.Identity()
+    elif norm_type == "layer":
+        return nn.LayerNorm(d_model)
+    elif norm_type == "batch":
+        return TemporalBatchNorm1D(d_model)
+    else:
+        raise ValueError(f"Unsupported norm type '{norm_type}'")
+
+
 class S4Block(nn.Module):
     """S4 Block.
 
@@ -48,6 +59,7 @@ class S4Block(nn.Module):
         self.norm_type = norm_type
         self.p_dropout = p_dropout
 
+        self.norm = _parse_norm_type(norm_type)
         self.pipeline = nn.Sequential(
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
