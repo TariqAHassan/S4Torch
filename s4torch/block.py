@@ -39,6 +39,8 @@ class S4Block(nn.Module):
             ``S4Layer()``.
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pre_norm (bool): if ``True`` apply normalization before ``S4Layer``,
+            otherwise apply prior to final dropout
 
     """
 
@@ -50,6 +52,7 @@ class S4Block(nn.Module):
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
         norm_type: Optional[str] = "layer",
+        pre_norm: bool = False,
     ) -> None:
         super().__init__()
         self.d_model = d_model
@@ -58,13 +61,16 @@ class S4Block(nn.Module):
         self.activation = activation
         self.norm_type = norm_type
         self.p_dropout = p_dropout
+        self.pre_norm = pre_norm
 
         self.norm = _parse_norm_type(norm_type)
         self.pipeline = nn.Sequential(
+            self.norm if pre_norm else nn.Identity(),
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
+            nn.Identity() if pre_norm else self.norm,
             nn.Dropout(p_dropout),
         )
 
