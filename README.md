@@ -45,7 +45,8 @@ assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
 
 ## Training
 
-Models can be trained using the command line interface (CLI) provided by `train.py`.
+Models can be trained using the command line interface (CLI) provided by `train.py`. <br>
+CLI documentation can be obtained by running `python train.py --help`.
 
 **Notes**:
  * development requirements must be installed prior to training. This can be accomplished by 
@@ -57,7 +58,6 @@ Models can be trained using the command line interface (CLI) provided by `train.
    omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
- * documentation for the CLI can be found by running `python train.py --help` 
  * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
 #### Sequential [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
