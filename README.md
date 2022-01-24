@@ -15,8 +15,7 @@ Requires Python 3.9+.
 
 ## Quick Start
 
-The `S4Model()` provides a high-level implementation of the S4 model.
-A simple example is provided below.
+The `S4Model()` provides a high-level implementation of the S4 model, as illustrated below.
 
 ```python
 import torch
