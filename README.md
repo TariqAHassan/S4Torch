@@ -50,8 +50,8 @@ Models can be trained using the command line interface (CLI) provided by `train.
 **Notes**:
  * development requirements must be installed prior to training. This can be accomplished by 
    running `pip install -r dev_requirements.txt`.
- * average pooling is used in some training sessions described below, which is not used in the original 
-   implementation. The primary motivation for adding pooling was to reduce memory usage.
+ * average pooling is used in some training sessions described below, but is not present in the original 
+   S4 implementation. The primary motivation for adding pooling was to reduce memory usage.
    Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
