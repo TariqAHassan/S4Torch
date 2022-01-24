@@ -103,7 +103,7 @@ class DatasetWrapper:
         train: bool,
         batch_size: int,
         num_workers: int = max(1, cpu_count() - 1),
-        pin_memory: Optional[bool] = True,
+        pin_memory: Optional[bool] = None,
         **kwargs: Any,
     ) -> tuple[DataLoader, Dataset]:
         """Make a dataloaders.
