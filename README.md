@@ -144,7 +144,7 @@ python train.py \
   --patience=10
 ```
 
-**Validation Accuracy**: 77.9% after 2 epochs <br>
+**Validation Accuracy**: 86.8% after 3 epochs <br>
 **Speed**: ~2.1 batches/second
 
 Note: the `speechcommands10` dataset uses a subset of 10 speech commands, as 
