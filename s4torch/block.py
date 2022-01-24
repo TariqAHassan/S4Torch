@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from s4torch.aux.norms import TemporalBatchNorm1D
+from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
 
 
@@ -63,12 +64,13 @@ class S4Block(nn.Module):
         self.pre_norm = pre_norm
         self.p_dropout = p_dropout
 
-        self.pipeline = nn.Sequential(
+        self.pipeline = SequentialWithResidual(
             _parse_norm_type(norm_type) if pre_norm else nn.Identity(),
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(d_model, d_model, bias=True),
+            Residual(),
             nn.Identity() if pre_norm else _parse_norm_type(norm_type),
             nn.Dropout(p_dropout),
         )
@@ -83,8 +85,7 @@ class S4Block(nn.Module):
             y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
 
         """
-        z = self.pipeline(u)
-        return self.norm(z + u)
+        return self.pipeline(u)
 
 
 if __name__ == "__main__":
