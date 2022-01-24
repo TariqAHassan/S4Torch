@@ -156,6 +156,7 @@ def main(
     p_dropout: float = 0.2,
     pooling: Optional[str] = None,
     norm_type: Optional[str] = "layer",
+    pre_norm: bool = False,
     # Training
     max_epochs: Optional[int] = None,
     lr: float = 1e-2,
@@ -189,6 +190,8 @@ def main(
         p_dropout (float): probability of elements being set to zero
         pooling (str, optional): pooling method to use. Options: ``None``,
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
+        pre_norm (bool): if ``True`` apply normalization before ``S4Layer``,
+            otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         max_epochs (int, optional): maximum number of epochs to train for
@@ -229,6 +232,7 @@ def main(
             collapse=True,  # classification
             p_dropout=p_dropout,
             pooling=_parse_pooling(pooling),
+            pre_norm=pre_norm,
             norm_type=norm_type,
         ),
         hparams=hparams,

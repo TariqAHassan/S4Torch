@@ -63,6 +63,8 @@ class S4Model(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
+        pre_norm (bool): if ``True`` apply normalization before ``S4Layer``,
+            otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
 
@@ -80,6 +82,7 @@ class S4Model(nn.Module):
         pooling: Optional[TemporalBasePooling] = None,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
+        pre_norm: bool = False,
         norm_type: Optional[str] = "layer",
     ) -> None:
         super().__init__()
@@ -92,6 +95,7 @@ class S4Model(nn.Module):
         self.collapse = collapse
         self.pooling = pooling
         self.p_dropout = p_dropout
+        self.pre_norm = pre_norm
         self.norm_type = norm_type
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
@@ -111,6 +115,7 @@ class S4Model(nn.Module):
                         l_max=seq_len,
                         p_dropout=p_dropout,
                         activation=activation,
+                        pre_norm=pre_norm,
                         norm_type=norm_type,
                     ),
                     pooling if pooling and pool_ok else nn.Identity(),
@@ -156,6 +161,5 @@ if __name__ == "__main__":
         n=N,
         l_max=l_max,
         collapse=False,
-        pooling=None,
     )
     assert s4model(u).shape == (u.shape[0], s4model.seq_len_out, s4model.d_output)
