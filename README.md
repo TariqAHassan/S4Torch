@@ -50,10 +50,10 @@ Models can be trained using the command line interface (CLI) provided by `train.
 **Notes**:
  * development requirements must be installed prior to training. This can be accomplished by 
    running `pip install -r dev_requirements.txt`.
- * average pooling is used in some training sessions described below, but is not present in the original 
-   S4 implementation. The primary motivation for adding pooling was to reduce memory usage and, 
-   at least in the case of Sequential MNIST, does not appear reduce accuracy. 
-   Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
+ * average pooling after each S4 block is used in some training sessions described below, whereas the 
+   original S4 implementation only uses average pooling prior to decoding. The primary motivation for adding 
+   additional pooling was to reduce memory usage and, at least in the case of Sequential MNIST, does not appear 
+   reduce accuracy. Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
  * documentation for the CLI can be found by running `python train.py --help` 
@@ -96,6 +96,7 @@ python train.py \
 python train.py \
   --dataset=pmnist \
   --batch_size=16 \
+  --pooling=avg_2 \
   --max_epochs=100 \
   --lr=1e-2 \
   --n_blocks=6 \
