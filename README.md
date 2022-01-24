@@ -88,7 +88,7 @@ python train.py \
   --norm_type=layer
 ```
 
-**Validation Accuracy**: 98.4% after 5 epochs, 99.3% after 10 epochs (best) <br>
+**Validation Accuracy**: 98.4% after 5 epochs, 99.4% after 16 epochs (best) <br>
 **Speed**: ~11.5 batches/second
 
 #### Permuted [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
