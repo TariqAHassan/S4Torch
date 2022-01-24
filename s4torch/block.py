@@ -13,7 +13,7 @@ from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
 
 
-def _parse_norm_type(norm_type: Optional[str]) -> nn.Module:
+def _make_norm(d_model: int, norm_type: Optional[str]) -> nn.Module:
     if norm_type is None:
         return nn.Identity()
     elif norm_type == "layer":
@@ -65,13 +65,13 @@ class S4Block(nn.Module):
         self.p_dropout = p_dropout
 
         self.pipeline = SequentialWithResidual(
-            _parse_norm_type(norm_type) if pre_norm else nn.Identity(),
+            _make_norm(d_model, norm_type=norm_type) if pre_norm else nn.Identity(),
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(d_model, d_model, bias=True),
             Residual(),
-            nn.Identity() if pre_norm else _parse_norm_type(norm_type),
+            nn.Identity() if pre_norm else _make_norm(d_model, norm_type=norm_type),
             nn.Dropout(p_dropout),
         )
 
