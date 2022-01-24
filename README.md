@@ -93,7 +93,7 @@ python train.py \
 ```shell
 python train.py \
   --dataset=CIFAR10 \
-  --batch_size=-1 \
+  --batch_size=32 \
   --max_epochs=200 \
   --lr=1e-2 \
   --n_blocks=6 \
