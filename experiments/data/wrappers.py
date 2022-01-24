@@ -144,7 +144,7 @@ class SMnistWrapper(DatasetWrapper):
             partial(
                 MNIST,
                 download=True,
-                transform=Compose([ToTensor(), Lambda(lambda t: t.view(-1))]),
+                transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
             ),
             **kwargs,
         )
