@@ -74,15 +74,6 @@ class S4Block(nn.Module):
             nn.Dropout(p_dropout),
         )
 
-        if norm_type is None:
-            self.norm = nn.Identity()
-        elif norm_type == "layer":
-            self.norm = nn.LayerNorm(d_model)
-        elif norm_type == "batch":
-            self.norm = TemporalBatchNorm1D(d_model)
-        else:
-            raise ValueError(f"Unsupported norm type '{norm_type}'")
-
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
 
