@@ -26,18 +26,14 @@ class GatedResidual(Residual):
         return super().forward(gate * y, (1 - gate) * x)
 
 
-class SequentialWithResidual(nn.Module):
-    def __init__(self, *modules: nn.Module) -> None:
-        super().__init__()
-        self.modules = modules
-
+class SequentialWithResidual(nn.Sequential):
     @staticmethod
     def _is_residual_module(obj: Any) -> bool:
         return isinstance(obj, Residual) or issubclass(type(obj), Residual)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         y = x
-        for module in self.modules:
+        for module in self:
             if self._is_residual_module(module):
                 y = module(y, x=x)
             else:
