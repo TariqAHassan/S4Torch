@@ -30,11 +30,6 @@ from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
 
-def _verbose_print(msg: str, verbose: bool) -> None:
-    if verbose:
-        print(msg)
-
-
 def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
     try:
         return _DATASET_WRAPPERS[name.upper()]
@@ -258,8 +253,6 @@ def main(
     )
     if auto_scale_batch_size:
         trainer.tune(pl_model)
-        _verbose_print(f"Batch size: {pl_model.hparams.batch_size}", verbose=verbose)
-
     trainer.fit(pl_model)
 
 
