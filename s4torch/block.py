@@ -3,18 +3,19 @@
     S4 Block
 
 """
-from typing import Any, Type
+from typing import Optional, Type
 
 import torch
 from torch import nn
 
+from s4torch.aux.layers import TemporalBatchNorm1D
 from s4torch.layer import S4Layer
 
 
 class S4Block(nn.Module):
     """S4 Block.
 
-    Applies an ``S4Layer()``, followed by an activation
+    Applies ``S4Layer()``, followed by an activation
     function, dropout, linear layer, skip connection and
     layer normalization.
 
@@ -25,8 +26,8 @@ class S4Block(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
-        **kwargs (Keyword Args): Keyword arguments to be passed to
-            ``S4Layer()``.
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
 
     """
 
@@ -37,23 +38,32 @@ class S4Block(nn.Module):
         l_max: int,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
-        **kwargs: Any,
+        norm_type: Optional[str] = "layer",
     ) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
         self.activation = activation
+        self.norm_type = norm_type
         self.p_dropout = p_dropout
 
         self.pipeline = nn.Sequential(
-            S4Layer(d_model, n=n, l_max=l_max, **kwargs),
+            S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
             nn.Dropout(p_dropout),
         )
-        self.norm = nn.LayerNorm(d_model)
+
+        if norm_type is None:
+            self.norm = nn.Identity()
+        elif norm_type == "layer":
+            self.norm = nn.LayerNorm(d_model)
+        elif norm_type == "batch":
+            self.norm = TemporalBatchNorm1D(d_model)
+        else:
+            raise ValueError(f"Unsupported norm type '{norm_type}'")
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
@@ -78,5 +88,5 @@ if __name__ == "__main__":
 
     u = torch.randn(1, l_max, d_model)
 
-    s4block = S4Block(d_model, n=N, l_max=l_max)
+    s4block = S4Block(d_model, n=N, l_max=l_max, norm_type="batch")
     assert s4block(u).shape == u.shape

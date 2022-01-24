@@ -3,12 +3,40 @@
     S4 Model
 
 """
-from typing import Any
+from __future__ import annotations
+
+from typing import Optional, Type
 
 import torch
 from torch import nn
 
+from s4torch.aux.layers import TemporalBasePooling
 from s4torch.block import S4Block
+
+
+def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
+    if pool_kernel is None:
+        return 1
+    elif isinstance(pool_kernel, tuple):
+        return pool_kernel[0]
+    else:
+        return pool_kernel
+
+
+def _seq_length_schedule(
+    n_blocks: int,
+    l_max: int,
+    pool_kernel: Optional[int | tuple[int]],
+) -> list[tuple[int, int]]:
+    ppk = _parse_pool_kernel(pool_kernel)
+
+    schedule = list()
+    for depth in range(n_blocks + 1):
+        l_max_next = max(2, l_max // ppk)
+        pool_ok = l_max_next > ppk
+        schedule.append((l_max, pool_ok))
+        l_max = l_max_next
+    return schedule
 
 
 class S4Model(nn.Module):
@@ -16,23 +44,27 @@ class S4Model(nn.Module):
 
     High-level implementation of the S4 model which:
 
-        1. encodes the input using a linear layer
-        2. applies ``1..n_blocks`` S4 blocks
-        3. decodes the output of step 2 using another linear layer
+        1. Encodes the input using a linear layer
+        2. Applies ``1..n_blocks`` S4 blocks
+        3. Decodes the output of step 2 using another linear layer
 
     Args:
         d_input (int): number of input features
         d_model (int): number of internal features
         d_output (int): number of features to return
-        n_blocks (int): number of S4 layers to construct
+        n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
+        pooling (TemporalBasePooling, optional): pooling method to use
+            following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
-        **kwargs (Keyword Args): Keyword arguments to be passed to
-            ``S4Block()``.
+        activation (Type[nn.Module]): activation function to use after
+            ``S4Layer()``.
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
 
     """
 
@@ -45,8 +77,10 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
+        pooling: Optional[TemporalBasePooling] = None,
         p_dropout: float = 0.0,
-        **kwargs: Any,
+        activation: Type[nn.Module] = nn.GELU,
+        norm_type: Optional[str] = "layer",
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -56,20 +90,32 @@ class S4Model(nn.Module):
         self.n = n
         self.l_max = l_max
         self.collapse = collapse
+        self.pooling = pooling
         self.p_dropout = p_dropout
+        self.norm_type = norm_type
+
+        *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
+            n_blocks=n_blocks,
+            l_max=l_max,
+            pool_kernel=None if self.pooling is None else self.pooling.kernel_size,
+        )
 
         self.encoder = nn.Linear(self.d_input, self.d_model)
         self.decoder = nn.Linear(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
-                S4Block(
-                    d_model=d_model,
-                    n=n,
-                    l_max=l_max,
-                    p_dropout=p_dropout,
-                    **kwargs,
+                nn.Sequential(
+                    S4Block(
+                        d_model=d_model,
+                        n=n,
+                        l_max=seq_len,
+                        p_dropout=p_dropout,
+                        activation=activation,
+                        norm_type=norm_type,
+                    ),
+                    pooling if pooling and pool_ok else nn.Identity(),
                 )
-                for _ in range(n_blocks)
+                for (seq_len, pool_ok) in self.seq_len_schedule
             ]
         )
 
@@ -80,9 +126,10 @@ class S4Model(nn.Module):
             u (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_INPUT]``
 
         Returns:
-            y (torch.Tensor): a tensor of the form ``[BATCH, D_OUTPUT]``
-                if ``collapse`` is ``True`` and ``[BATCH, SEQ_LEN, D_INPUT]``
-                otherwise.
+            y (torch.Tensor): a tensor of the form ``[BATCH, D_OUTPUT]`` if ``collapse``
+                is ``True`` and ``[BATCH, SEQ_LEN // (POOL_KERNEL ** n_block), D_INPUT]``
+                otherwise, where ``POOL_KERNEL`` is the kernel size of the ``pooling``
+                layer. (If ``pooling`` is ``None``, ``POOL_KERNEL=1``.)
 
         """
         y = self.encoder(u)
@@ -109,5 +156,6 @@ if __name__ == "__main__":
         n=N,
         l_max=l_max,
         collapse=False,
+        pooling=None,
     )
-    assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
+    assert s4model(u).shape == (u.shape[0], s4model.seq_len_out, s4model.d_output)
