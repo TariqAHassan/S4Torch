@@ -144,8 +144,8 @@ python train.py \
   --patience=10
 ```
 
-**Validation Accuracy**: TBD <br>
-**Speed**: TBD
+**Validation Accuracy**: 77.9% after 2 epochs <br>
+**Speed**: ~2.1 batches/second
 
 Note: the `speechcommands10` dataset uses a subset of 10 speech commands, as 
 in the [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4.
