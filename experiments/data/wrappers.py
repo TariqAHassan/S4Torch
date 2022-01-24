@@ -120,8 +120,7 @@ class DatasetWrapper:
             **kwargs (Keyword Arguments): keyword arguments to pass to ``DataLoader()``
 
         Returns:
-            dataloaders (tuple): a tuple of the form
-                ``(train_dataloader, validation_dataloader)``
+            dataloader (DataLoader): a torch dataloader
 
         """
         return DataLoader(
