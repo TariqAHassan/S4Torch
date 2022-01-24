@@ -68,7 +68,7 @@ class S4Block(nn.Module):
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
-            nn.Linear(in_features=d_model, out_features=d_model),
+            nn.Linear(d_model, d_model, bias=True),
             nn.Identity() if pre_norm else _parse_norm_type(norm_type),
             nn.Dropout(p_dropout),
         )
