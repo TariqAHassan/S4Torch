@@ -63,14 +63,13 @@ class S4Block(nn.Module):
         self.pre_norm = pre_norm
         self.p_dropout = p_dropout
 
-        self.norm = _parse_norm_type(norm_type)
         self.pipeline = nn.Sequential(
-            self.norm if pre_norm else nn.Identity(),
+            _parse_norm_type(norm_type) if pre_norm else nn.Identity(),
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(in_features=d_model, out_features=d_model),
-            nn.Identity() if pre_norm else self.norm,
+            nn.Identity() if pre_norm else _parse_norm_type(norm_type),
             nn.Dropout(p_dropout),
         )
 
