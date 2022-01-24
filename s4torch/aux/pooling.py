@@ -1,6 +1,6 @@
 """
 
-    Utils
+    Pooling
 
 """
 from __future__ import annotations
@@ -27,11 +27,6 @@ class TemporalAvgPooling(TemporalBasePooling, nn.AvgPool1d):
 
 
 class TemporalMaxPooling(TemporalBasePooling, nn.MaxPool1d):
-    def forward(self, input: torch.Tensor) -> torch.Tensor:  # noqa
-        return super().forward(input.transpose(-2, -1)).transpose(-2, -1)
-
-
-class TemporalBatchNorm1D(nn.BatchNorm1d):
     def forward(self, input: torch.Tensor) -> torch.Tensor:  # noqa
         return super().forward(input.transpose(-2, -1)).transpose(-2, -1)
 

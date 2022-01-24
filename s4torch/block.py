@@ -8,7 +8,7 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.layers import TemporalBatchNorm1D
+from s4torch.aux.pooling import TemporalBatchNorm1D
 from s4torch.layer import S4Layer
 
 

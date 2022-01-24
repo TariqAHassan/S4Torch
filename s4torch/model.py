@@ -10,7 +10,7 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.layers import TemporalBasePooling
+from s4torch.aux.pooling import TemporalBasePooling
 from s4torch.block import S4Block
 
 

@@ -25,7 +25,7 @@ from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
 from experiments.utils import OutputPaths, to_sequence
 from s4torch import S4Model
-from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
+from s4torch.aux.pooling import TemporalAvgPooling, TemporalMaxPooling
 
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
