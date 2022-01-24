@@ -46,20 +46,20 @@ class SequentialWithResidual(nn.Module):
 
 
 if __name__ == "__main__":
-    self = SequentialWithResidual(nn.AvgPool1d(2), nn.ReLU())
+    swr = SequentialWithResidual(nn.AvgPool1d(2), nn.ReLU())
 
     x = torch.randn(2, 10)
 
     # Test forward
-    output = self(x)
+    output = swr(x)
     assert output.shape == (x.shape[0], x.shape[1] // 2)  # AvgPool1d
     assert output.min() >= 0  # ReLU
 
     # Test `_is_residual_module()`
-    assert not self._is_residual_module(99)
-    assert not self._is_residual_module(None)
-    assert not self._is_residual_module(nn.ReLU())
-    assert not self._is_residual_module(nn.ReLU)
-    assert not self._is_residual_module(Residual)
-    assert self._is_residual_module(Residual())
-    assert self._is_residual_module(GatedResidual())
+    assert not swr._is_residual_module(99)
+    assert not swr._is_residual_module(None)
+    assert not swr._is_residual_module(nn.ReLU())
+    assert not swr._is_residual_module(nn.ReLU)
+    assert not swr._is_residual_module(Residual)
+    assert swr._is_residual_module(Residual())
+    assert swr._is_residual_module(GatedResidual())
