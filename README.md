@@ -69,7 +69,7 @@ python train.py \
   --lr=1e-2 \
   --n_blocks=6 \
   --d_model=128 \
-  --norm=layer
+  --norm_type=layer
 ```
 
 **Validation Accuracy**: 98.6% after 5 epochs <br>
@@ -84,7 +84,7 @@ python train.py \
   --lr=1e-2 \
   --n_blocks=6 \
   --d_model=128 \
-  --norm=layer
+  --norm_type=layer
 ```
 
 **Validation Accuracy**: 98.4% after 5 epochs, 99.3% after 10 epochs <br>
@@ -100,7 +100,7 @@ python train.py \
   --lr=1e-2 \
   --n_blocks=6 \
   --d_model=128 \
-  --norm=layer
+  --norm_type=layer
 ```
 
 **Validation Accuracy**: TBD <br>
