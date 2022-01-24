@@ -170,7 +170,6 @@ def main(
     output_dir: str = "~/s4-output",
     save_top_k: int = 0,
     seed: int = 1234,
-    verbose: bool = True,
 ) -> None:
     f"""Train a S4 model.
 
@@ -207,7 +206,6 @@ def main(
         save_top_k (int): save top k models, as determined by the ``val_acc``
             metric. (Defaults to ``0``, which disables model saving.)
         seed (int): random seed for training
-        verbose (bool): if ``True`` print additional information
 
     Returns:
         None
