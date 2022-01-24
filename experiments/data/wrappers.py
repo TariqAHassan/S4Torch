@@ -189,14 +189,23 @@ class PMnistWrapper(DatasetWrapper):
         return (28 * 28,)  # noqa
 
 
-class CIFAR10Wrapper(DatasetWrapper):
-    """CIFAR10."""
+class SCIFAR10Wrapper(DatasetWrapper):
+    """Sequential CIFAR10."""
 
-    NAME: str = "CIFAR10"
+    NAME: str = "SCIFAR10"
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
-            partial(CIFAR10, download=True, transform=ToTensor()),
+            partial(
+                CIFAR10,
+                download=True,
+                transform=Compose(
+                    [
+                        ToTensor(),
+                        Lambda(lambda t: t.flatten(1).transpose(-2, -1)),
+                    ]
+                ),
+            ),
             **kwargs,
         )
 
@@ -210,7 +219,7 @@ class CIFAR10Wrapper(DatasetWrapper):
 
     @property
     def shape(self) -> tuple[int, ...]:
-        return 32, 32
+        return (32 * 32,)  # noqa
 
 
 class SpeechCommandWrapper(DatasetWrapper):

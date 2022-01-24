@@ -108,11 +108,11 @@ python train.py \
 **Validation Accuracy**: 94.0% after 5 epochs, 96.2% after 18 epochs (best) <br>
 **Speed**: ~11.5 batches/second
 
-#### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
+#### Sequential [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
 
 ```shell
 python train.py \
-  --dataset=CIFAR10 \
+  --dataset=scifar10 \
   --batch_size=32 \
   --max_epochs=200 \
   --lr=1e-2 \
