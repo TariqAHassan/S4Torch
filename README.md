@@ -53,6 +53,8 @@ Models can be trained using the command line interface (CLI) provided by `train.
  * average pooling is used in some training sessions described below. The primary motivation  
    for pooling is to reduce memory usage, and it is not used in the original implementation.
    Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
+ * specifying `--batch_size=-1` will result in the batch size being 
+   [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
  * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
 #### Sequential [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
@@ -60,12 +62,30 @@ Models can be trained using the command line interface (CLI) provided by `train.
 ```sh
 python train.py \
   --dataset=smnist \
-  --batch_size=-1  # use the largest possible batch size
-  
+  --batch_size=16 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --d_model=128 \
+  --norm=layer
 ```
 
 **Validation Accuracy**: 98.6% after 4 epochs <br>
 **Speed**: ~11.5 batches/second
+
+#### Permuted [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
+
+```sh
+python train.py \
+  --dataset=pmnist \
+  --batch_size=16 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --d_model=128 \
+  --norm=layer
+```
+
+**Validation Accuracy**: TBD <br>
+**Speed**: TBD
 
 #### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
 
@@ -106,7 +126,7 @@ python train.py \
 **Validation Accuracy**: TBD <br>
 **Speed**: TBD
 
-Note that the `speechcommands10` dataset uses a subset of 10 speech commands, as 
+Note: the `speechcommands10` dataset uses a subset of 10 speech commands, as 
 in the [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4.
 If you would like to train against all speech commands, the `speechcommands` dataset can be used instead.
 
