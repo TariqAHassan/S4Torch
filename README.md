@@ -64,6 +64,7 @@ Models can be trained using the command line interface (CLI) provided by `train.
 python train.py \
   --dataset=smnist \
   --batch_size=16 \
+  --max_epochs=100 \
   --lr=1e-2 \
   --n_blocks=6 \
   --d_model=128 \
@@ -79,6 +80,7 @@ python train.py \
 python train.py \
   --dataset=pmnist \
   --batch_size=16 \
+  --max_epochs=100 \
   --lr=1e-2 \
   --n_blocks=6 \
   --d_model=128 \
