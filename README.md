@@ -88,7 +88,7 @@ python train.py \
   --norm_type=layer
 ```
 
-**Validation Accuracy**: 98.4% after 5 epochs, 99.4% after 16 epochs (best) <br>
+**Validation Accuracy**: 98.4% after 5 epochs, 99.3% after 10 epochs (best) <br>
 **Speed**: ~11.5 batches/second
 
 #### Permuted [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
@@ -144,7 +144,7 @@ python train.py \
   --patience=10
 ```
 
-**Validation Accuracy**: 89.6% after 5 epochs, 94.3% after 13 epochs (best) <br>
+**Validation Accuracy**: 89.6% after 5 epochs, 99.4% after 16 epochs (best) <br>
 **Speed**: ~2.1 batches/second
 
 Note: the `speechcommands10` dataset uses a subset of 10 speech commands, as 
