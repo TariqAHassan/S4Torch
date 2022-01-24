@@ -155,7 +155,7 @@ class SMnistWrapper(DatasetWrapper):
 
     @property
     def channels(self) -> int:
-        return 1
+        return 0
 
     @property
     def shape(self) -> tuple[int, ...]:
