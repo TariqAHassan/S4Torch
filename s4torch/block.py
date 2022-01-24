@@ -8,6 +8,7 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
+from s4torch.aux.layers import TemporalBatchNorm1D
 from s4torch.layer import S4Layer
 
 
@@ -60,7 +61,7 @@ class S4Block(nn.Module):
         elif norm_type == "layer":
             self.norm = nn.LayerNorm(d_model)
         elif norm_type == "batch":
-            self.norm = nn.BatchNorm1d(d_model)
+            self.norm = TemporalBatchNorm1D(d_model)
         else:
             raise ValueError(f"Unsupported norm type '{norm_type}'")
 
@@ -87,5 +88,5 @@ if __name__ == "__main__":
 
     u = torch.randn(1, l_max, d_model)
 
-    s4block = S4Block(d_model, n=N, l_max=l_max)
+    s4block = S4Block(d_model, n=N, l_max=l_max, norm_type="batch")
     assert s4block(u).shape == u.shape
