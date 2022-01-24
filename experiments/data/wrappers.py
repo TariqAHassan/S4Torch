@@ -264,12 +264,13 @@ class SpeechCommand10Wrapper(DatasetWrapper):
 
 if __name__ == "__main__":
     smnist_wrapper = SMnistWrapper()
-    train_dl, val_dl = smnist_wrapper.get_dataloaders(8)
+    train_dl = smnist_wrapper.make_dataloader(train=True, batch_size=1)
+    val_dl = smnist_wrapper.make_dataloader(train=False, batch_size=1)
 
-    assert smnist_wrapper.NAME == "MNIST"
+    assert smnist_wrapper.NAME == "SMNIST"
     assert isinstance(train_dl, DataLoader)
     assert isinstance(val_dl, DataLoader)
     assert isinstance(smnist_wrapper.classes, list)
     assert smnist_wrapper.n_classes == 10
     assert smnist_wrapper.channels == 1
-    assert smnist_wrapper.shape == (28, 28)
+    assert smnist_wrapper.shape == (28 * 28,)
