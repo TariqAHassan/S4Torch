@@ -139,7 +139,7 @@ python train.py \
   --pooling=avg_2 \
   --d_model=128 \
   --weight_decay=0.0 \
-  --norm_type=batch,
+  --norm_type=batch \
   --p_dropout=0.1 \
   --patience=10
 ```
