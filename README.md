@@ -52,7 +52,7 @@ Models can be trained using the command line interface (CLI) provided by `train.
    running `pip install -r dev_requirements.txt`.
  * average pooling is used in some training sessions described below, but is not present in the original 
    S4 implementation. The primary motivation for adding pooling was to reduce memory usage and, 
-   at least in the case of Sequential MNIST, does not appear to result in a meaningful change in accuracy. 
+   at least in the case of Sequential MNIST, does not appear reduce accuracy. 
    Pooling can be disabled by setting `--pooling=None`, or by simply omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
