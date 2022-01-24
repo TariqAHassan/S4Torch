@@ -57,7 +57,8 @@ CLI documentation can be obtained by running `python train.py --help`.
    omitting the `--pooling` flag.
  * specifying `--batch_size=-1` will result in the batch size being 
    [auto-scaled](https://pytorch-lightning.readthedocs.io/en/latest/advanced/training_tricks.html#batch-size-finder)
- * all experiments were performed on a single NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
+ * all experiments were performed on a machine with 8 CPU cores, 30 GB of RAM and a single 
+   NVIDIA® Tesla® V100 GPU with 16 GB of vRAM
 
 #### Sequential [MNIST](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.MNIST)
 
