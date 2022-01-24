@@ -105,8 +105,8 @@ python train.py \
   --norm_type=layer
 ```
 
-**Validation Accuracy**: TBD <br>
-**Speed**: TBD
+**Validation Accuracy**: 94.0% after 5 epochs <br>
+**Speed**: ~11.5 batches/second
 
 #### [CIFAR10](https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.CIFAR10)
 
