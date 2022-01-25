@@ -63,7 +63,7 @@ class S4Model(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
-        pre_norm (bool): if ``True`` apply normalization before ``S4Layer``,
+        pre_norm (bool): if ``True`` apply normalization before ``S4Layer()``,
             otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.

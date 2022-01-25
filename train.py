@@ -190,7 +190,7 @@ def main(
         p_dropout (float): probability of elements being set to zero
         pooling (str, optional): pooling method to use. Options: ``None``,
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
-        pre_norm (bool): if ``True`` apply normalization before ``S4Layer``,
+        pre_norm (bool): if ``True`` apply normalization before ``S4Layer()``,
             otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
