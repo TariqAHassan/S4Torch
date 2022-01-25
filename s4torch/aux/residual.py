@@ -35,13 +35,13 @@ class GatedResidual(Residual):
 
 class SequentialWithResidual(nn.Sequential):
     @staticmethod
-    def _is_residual_module(obj: Any) -> bool:
+    def _residual_module(obj: Any) -> bool:
         return isinstance(obj, Residual) or issubclass(type(obj), Residual)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         y = x
         for module in self:
-            if self._is_residual_module(module):
+            if self._residual_module(module):
                 y = module(y, x=x)
             else:
                 y = module(y)
@@ -58,14 +58,14 @@ if __name__ == "__main__":
     assert output.shape == (x.shape[0], x.shape[1], x.shape[-1] // 2)  # AvgPool1d
     assert output.min() >= 0  # ReLU
 
-    # Test `SequentialWithResidual._is_residual_module()`
-    assert not swr._is_residual_module(99)
-    assert not swr._is_residual_module(None)
-    assert not swr._is_residual_module(nn.ReLU())
-    assert not swr._is_residual_module(nn.ReLU)
-    assert not swr._is_residual_module(Residual)
-    assert swr._is_residual_module(Residual())
-    assert swr._is_residual_module(GatedResidual())
+    # Test `SequentialWithResidual._residual_module()`
+    assert not swr._residual_module(99)
+    assert not swr._residual_module(None)
+    assert not swr._residual_module(nn.ReLU())
+    assert not swr._residual_module(nn.ReLU)
+    assert not swr._residual_module(Residual)
+    assert swr._residual_module(Residual())
+    assert swr._residual_module(GatedResidual())
 
     # Test residual layers
     for layer in (Residual(), GatedResidual(x.shape[-1])):
