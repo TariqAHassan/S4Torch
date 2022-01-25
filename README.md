@@ -73,7 +73,7 @@ python train.py \
   --norm_type=layer
 ```
 
-**Validation Accuracy**: 98.6% after 5 epochs <br>
+**Validation Accuracy**: 98.6% after 5 epochs, 99.3% after 9 epochs (best) <br>
 **Speed**: ~10.5 batches/second
 
 ```sh
