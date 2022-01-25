@@ -153,9 +153,9 @@ def main(
     n_blocks: int = 6,
     s4_n: int = 64,
     p_dropout: float = 0.2,
-    pooling: Optional[str] = None,
     norm_type: Optional[str] = "layer",
     pre_norm: bool = False,
+    pooling: Optional[str] = None,
     # Training
     max_epochs: Optional[int] = None,
     lr: float = 1e-2,
@@ -187,12 +187,12 @@ def main(
         n_blocks (int): number of S4 blocks to construct
         s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
-        pooling (str, optional): pooling method to use. Options: ``None``,
-            ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         pre_norm (bool): if ``True`` apply normalization before ``S4Layer()``,
             otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pooling (str, optional): pooling method to use. Options: ``None``,
+            ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks

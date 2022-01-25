@@ -3,6 +3,7 @@
     S4 Block
 
 """
+from __future__ import annotations
 from typing import Optional, Type
 
 import torch
@@ -42,6 +43,8 @@ class S4Block(nn.Module):
             otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
+            following each ``S4Block()``.
 
     """
 
@@ -54,15 +57,17 @@ class S4Block(nn.Module):
         activation: Type[nn.Module] = nn.GELU,
         pre_norm: bool = False,
         norm_type: Optional[str] = "layer",
+        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
+        self.p_dropout = p_dropout
         self.activation = activation
         self.norm_type = norm_type
         self.pre_norm = pre_norm
-        self.p_dropout = p_dropout
+        self.pooling = pooling
 
         self.pipeline = SequentialWithResidual(
             _make_norm(d_model, norm_type=norm_type) if pre_norm else nn.Identity(),
@@ -72,6 +77,7 @@ class S4Block(nn.Module):
             nn.Linear(d_model, d_model, bias=True),
             Residual(),
             nn.Identity() if pre_norm else _make_norm(d_model, norm_type=norm_type),
+            TemporalAdapter(pooling) if pooling else nn.Identity(),
             nn.Dropout(p_dropout),
         )
 

@@ -10,7 +10,6 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.adapters import TemporalAdapter
 from s4torch.block import S4Block
 
 
@@ -60,8 +59,6 @@ class S4Model(nn.Module):
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
-        pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
-            following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
@@ -69,6 +66,8 @@ class S4Model(nn.Module):
             otherwise apply prior to final dropout
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
+            following each ``S4Block()``.
 
     """
 
@@ -81,11 +80,11 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
-        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
         pre_norm: bool = False,
         norm_type: Optional[str] = "layer",
+        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -95,10 +94,10 @@ class S4Model(nn.Module):
         self.n = n
         self.l_max = l_max
         self.collapse = collapse
-        self.pooling = pooling
         self.p_dropout = p_dropout
         self.pre_norm = pre_norm
         self.norm_type = norm_type
+        self.pooling = pooling
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
@@ -119,8 +118,8 @@ class S4Model(nn.Module):
                         activation=activation,
                         pre_norm=pre_norm,
                         norm_type=norm_type,
+                        pooling=pooling if pooling and pool_ok else None,
                     ),
-                    TemporalAdapter(pooling) if pooling and pool_ok else nn.Identity(),
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
