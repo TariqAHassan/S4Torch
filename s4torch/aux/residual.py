@@ -15,10 +15,13 @@ class Residual(nn.Module):
 
 
 class GatedResidual(Residual):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        init_value: float = 0.0,  # sigmoid(0) = 0.5
+    ) -> None:
         super().__init__()
         self.gate = nn.Parameter(
-            torch.fill_(torch.empty(1), value=0.5),
+            torch.fill_(torch.empty(1), value=init_value),
         )
 
     def forward(self, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
