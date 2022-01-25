@@ -19,8 +19,10 @@ def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
         return 1
     elif isinstance(pool_kernel, tuple):
         return pool_kernel[0]
-    else:
+    elif isinstance(pool_kernel, int):
         return pool_kernel
+    else:
+        raise TypeError(f"Unable to parse `pool_kernel`, got {pool_kernel}")
 
 
 def _seq_length_schedule(
