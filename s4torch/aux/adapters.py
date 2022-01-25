@@ -8,9 +8,9 @@ from torch import nn
 
 
 class TemporalAdapter(nn.Module):
-    def __init__(self, module: nn.Module) -> None:
+    def __init__(self, engine: nn.Module) -> None:
         super().__init__()
-        self.add_module("engine", module)
+        self.add_module("engine", engine)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # [BATCH, SEQ_LEN, D_MODEL]
         return self.engine(x.transpose(-2, -1)).transpose(-2, -1)
