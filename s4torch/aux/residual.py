@@ -17,11 +17,15 @@ class Residual(nn.Module):
 class GatedResidual(Residual):
     def __init__(
         self,
+        features: int = 1,
         init_value: float = 0.0,  # sigmoid(0) = 0.5
     ) -> None:
         super().__init__()
+        self.features = features
+        self.init_value = init_value
+
         self.gate = nn.Parameter(
-            torch.fill_(torch.empty(1), value=init_value),
+            torch.fill_(torch.empty(1, 1, features), value=init_value),
         )
 
     def forward(self, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
@@ -47,14 +51,14 @@ class SequentialWithResidual(nn.Sequential):
 if __name__ == "__main__":
     swr = SequentialWithResidual(nn.AvgPool1d(2), nn.ReLU())
 
-    x = torch.randn(2, 10)
+    x = torch.randn(2, 512, 128)
 
-    # Test forward
+    # Test `SequentialWithResidual()`
     output = swr(x)
-    assert output.shape == (x.shape[0], x.shape[1] // 2)  # AvgPool1d
+    assert output.shape == (x.shape[0], x.shape[1], x.shape[-1] // 2)  # AvgPool1d
     assert output.min() >= 0  # ReLU
 
-    # Test `_is_residual_module()`
+    # Test `SequentialWithResidual._is_residual_module()`
     assert not swr._is_residual_module(99)
     assert not swr._is_residual_module(None)
     assert not swr._is_residual_module(nn.ReLU())
@@ -62,3 +66,7 @@ if __name__ == "__main__":
     assert not swr._is_residual_module(Residual)
     assert swr._is_residual_module(Residual())
     assert swr._is_residual_module(GatedResidual())
+
+    # Test residual layers
+    for layer in (Residual(), GatedResidual(x.shape[-1])):
+        assert layer(x, x).shape == x.shape
