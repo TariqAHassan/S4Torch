@@ -10,8 +10,8 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.block import S4Block
 from s4torch.aux.adapters import TemporalAdapter
+from s4torch.block import S4Block
 
 
 def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:

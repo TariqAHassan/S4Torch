@@ -8,9 +8,9 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
+from s4torch.aux.adapters import TemporalAdapter
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
-from s4torch.aux.adapters import TemporalAdapter
 
 
 def _make_norm(d_model: int, norm_type: Optional[str]) -> nn.Module:
