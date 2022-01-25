@@ -25,7 +25,6 @@ from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
 from experiments.utils import OutputPaths, to_sequence
 from s4torch import S4Model
-from s4torch.aux.adapters import TemporalAdapter
 
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
@@ -37,7 +36,7 @@ def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
         raise KeyError(f"Unknown dataset '{name}'")
 
 
-def _parse_pooling(pooling: Optional[str]) -> Optional[TemporalAdapter]:
+def _parse_pooling(pooling: Optional[str]) -> Optional[nn.AvgPool1d | nn.MaxPool1d]:
     if pooling is None:
         return None
     elif pooling.count("_") != 1:
@@ -46,12 +45,11 @@ def _parse_pooling(pooling: Optional[str]) -> Optional[TemporalAdapter]:
     method, digit = pooling.split("_")
     kernel_size = int(digit)
     if method == "avg":
-        engine = nn.AvgPool1d(kernel_size)
+        return nn.AvgPool1d(kernel_size)
     elif method == "max":
-        engine = nn.MaxPool1d(kernel_size)
+        return nn.MaxPool1d(kernel_size)
     else:
         raise ValueError(f"Unsupported pooling method '{method}'")
-    return TemporalAdapter(engine)
 
 
 class LighteningS4Model(pl.LightningModule):
