@@ -8,9 +8,9 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.norms import TemporalBatchNorm1D
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
+from s4torch.aux.adapters import TemporalAdapter
 
 
 def _make_norm(d_model: int, norm_type: Optional[str]) -> nn.Module:
@@ -19,7 +19,7 @@ def _make_norm(d_model: int, norm_type: Optional[str]) -> nn.Module:
     elif norm_type == "layer":
         return nn.LayerNorm(d_model)
     elif norm_type == "batch":
-        return TemporalBatchNorm1D(d_model)
+        return TemporalAdapter(nn.BatchNorm1d(d_model))
     else:
         raise ValueError(f"Unsupported norm type '{norm_type}'")
 

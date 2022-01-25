@@ -10,8 +10,8 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.pooling import TemporalBasePooling
 from s4torch.block import S4Block
+from s4torch.aux.adapters import TemporalAdapter
 
 
 def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
@@ -58,7 +58,7 @@ class S4Model(nn.Module):
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
-        pooling (TemporalBasePooling, optional): pooling method to use
+        pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
             following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
@@ -79,7 +79,7 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
-        pooling: Optional[TemporalBasePooling] = None,
+        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
         pre_norm: bool = False,
@@ -118,7 +118,7 @@ class S4Model(nn.Module):
                         pre_norm=pre_norm,
                         norm_type=norm_type,
                     ),
-                    pooling if pooling and pool_ok else nn.Identity(),
+                    TemporalAdapter(pooling) if pooling and pool_ok else nn.Identity(),
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
