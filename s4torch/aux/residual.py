@@ -18,7 +18,7 @@ class GatedResidual(Residual):
     def __init__(
         self,
         features: int = 1,
-        init_value: float = 0.0,  # sigmoid(0) = 0.5
+        init_value: float = 0.0,  # sigmoid(0.0) = 0.5
     ) -> None:
         super().__init__()
         self.features = features
