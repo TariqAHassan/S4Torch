@@ -55,7 +55,7 @@ def to_sequence(x: torch.Tensor) -> torch.Tensor:
 
 def _parse_single_s4block(block: S4Block) -> tuple[S4Layer, list[nn.Module]]:
     keys = dict(block.named_modules(remove_duplicate=True)).keys()
-    if all(k.startswith("pipeline") or k == "" for k in keys):
+    if all(k.startswith("pipeline") or k in {"", "pooling"} for k in keys):
         pre, s4, *post = list(block.pipeline)
     else:
         raise KeyError(f"Unexpected modules found in block, got {sorted(keys)}")
