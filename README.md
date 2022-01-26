@@ -140,6 +140,7 @@ python train.py \
   --d_model=128 \
   --weight_decay=0.0 \
   --norm_type=batch \
+  --norm_strategy=post \
   --p_dropout=0.1 \
   --patience=10
 ```
@@ -147,9 +148,13 @@ python train.py \
 **Validation Accuracy**: 93.2% after 5 epochs, 95.8% after 13 epochs (best) <br>
 **Speed**: ~2.1 batches/second
 
-Note: the `speechcommands10` dataset uses a subset of 10 speech commands, as 
-in the [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4.
-If you would like to train against all speech commands, the `speechcommands` dataset can be used instead.
+Notes: 
+  
+  * the `speechcommands10` dataset uses a subset of 10 speech commands, as in the 
+    [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4. 
+    If you would like to train against all speech commands, the `speechcommands` dataset can be used instead.
+  * Batch normalization appears to work best with a "post" normalization strategy, whereas 
+    a "pre" normalization strategy appears to work best to layer normalization.
 
 ## Components
 
