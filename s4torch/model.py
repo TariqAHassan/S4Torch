@@ -145,11 +145,11 @@ class S4Model(nn.Module):
 
 
 if __name__ == "__main__":
-    N = 32
+    N = 64
     d_input = 1
     d_model = 128
     d_output = 128
-    n_blocks = 3
+    n_blocks = 6
     l_max = 784
 
     u = torch.randn(1, l_max, d_input)
