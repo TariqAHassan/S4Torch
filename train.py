@@ -23,7 +23,7 @@ from torch.utils.data import DataLoader
 
 from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
-from experiments.utils import OutputPaths, to_sequence
+from experiments.utils import OutputPaths, parse_params_in_s4blocks, to_sequence
 from s4torch import S4Model
 
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
@@ -105,13 +105,15 @@ class LighteningS4Model(pl.LightningModule):
         self.log("val_acc", value=accs.mean(), prog_bar=True)
 
     def configure_optimizers(self) -> dict[str, Any]:
+        s4layer_params, other_params = parse_params_in_s4blocks(self.model.blocks)
         optimizer = torch.optim.AdamW(
             [
                 {
-                    "params": self.model.blocks.parameters(),
+                    "params": s4layer_params,
                     "lr": self.hparams.lr_s4,
                     "weight_decay": 0.0,
                 },
+                {"params": other_params},
                 {"params": self.model.encoder.parameters()},
                 {"params": self.model.decoder.parameters()},
             ],

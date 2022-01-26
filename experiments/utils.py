@@ -3,9 +3,15 @@
     Utils
 
 """
+from itertools import chain
 from pathlib import Path
+from typing import Iterable
 
 import torch
+from torch import nn
+
+from s4torch.block import S4Block
+from s4torch.layer import S4Layer
 
 
 class OutputPaths:
@@ -38,3 +44,28 @@ def to_sequence(x: torch.Tensor) -> torch.Tensor:
         return x.flatten(2).transpose(-2, -1)
     else:
         raise IndexError(f"Expected 2D, 3D or 4D data, got {x.ndim}D")
+
+
+def _parse_single_s4block(block: S4Block) -> tuple[list[S4Layer], list[nn.Module]]:
+    _, *modules = block.modules()
+    s4layers, others = list(), list()
+    for m in modules:
+        if isinstance(m, S4Layer):
+            s4layers.append(m)
+        else:
+            others.append(m)
+    return s4layers, others
+
+
+def parse_params_in_s4blocks(
+    blocks: list[S4Block],
+) -> tuple[Iterable[nn.Parameter], Iterable[nn.Parameter]]:
+    def chain_params(modules: list[nn.Module]) -> Iterable[nn.Parameter]:
+        return chain(*map(lambda m: m.parameters(), modules))
+
+    s4layers, others = list(), list()
+    for b in blocks:
+        s4, other = _parse_single_s4block(b)
+        s4layers.extend(s4)
+        others.extend(other)
+    return chain_params(s4layers), chain_params(others)
