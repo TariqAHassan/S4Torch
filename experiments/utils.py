@@ -58,7 +58,7 @@ def _parse_single_s4block(block: S4Block) -> tuple[S4Layer, list[nn.Module]]:
     if all(k.startswith("pipeline") or k == "" for k in keys):
         pre, s4, *post = list(block.pipeline)
     else:
-        raise KeyError("Unexpected modules found in block")
+        raise KeyError(f"Unexpected modules found in block, got {sorted(keys)}")
     return s4, [pre, *post]
 
 
