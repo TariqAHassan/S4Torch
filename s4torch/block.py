@@ -41,7 +41,7 @@ class S4Block(nn.Module):
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
         norm_strategy (str): position of normalization relative to ``S4Layer()``.
-            Must be "pre" (before ``S4Layer()``), "post (after ``S4Layer()``)
+            Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
             or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.

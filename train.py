@@ -188,7 +188,7 @@ def main(
         s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
         norm_strategy (str): position of normalization relative to ``S4Layer()``.
-            Must be "pre" (before ``S4Layer()``), "post (after ``S4Layer()``)
+            Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
             or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
