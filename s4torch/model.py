@@ -109,17 +109,15 @@ class S4Model(nn.Module):
         self.decoder = nn.Linear(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
-                nn.Sequential(
-                    S4Block(
-                        d_model=d_model,
-                        n=n,
-                        l_max=seq_len,
-                        p_dropout=p_dropout,
-                        activation=activation,
-                        pre_norm=pre_norm,
-                        norm_type=norm_type,
-                        pooling=pooling if pooling and pool_ok else None,
-                    ),
+                S4Block(
+                    d_model=d_model,
+                    n=n,
+                    l_max=seq_len,
+                    p_dropout=p_dropout,
+                    activation=activation,
+                    pre_norm=pre_norm,
+                    norm_type=norm_type,
+                    pooling=pooling if pooling and pool_ok else None,
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
