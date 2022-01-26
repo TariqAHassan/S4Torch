@@ -154,7 +154,7 @@ Notes:
     [original implementation](https://github.com/HazyResearch/state-spaces#speech-commands) of S4. 
     If you would like to train against all speech commands, the `speechcommands` dataset can be used instead.
   * Batch normalization appears to work best with a "post" normalization strategy, whereas 
-    a "pre" normalization strategy appears to work best to layer normalization.
+    a "pre" normalization strategy appears to work best with layer normalization.
 
 ## Components
 
