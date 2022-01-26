@@ -14,25 +14,6 @@ class Residual(nn.Module):
         return y + x
 
 
-class GatedResidual(Residual):
-    def __init__(
-        self,
-        features: int = 1,
-        init_value: float = 0.0,  # sigmoid(0.0) = 0.5
-    ) -> None:
-        super().__init__()
-        self.features = features
-        self.init_value = init_value
-
-        self.gate = nn.Parameter(
-            torch.fill_(torch.empty(1, 1, features), value=init_value),
-        )
-
-    def forward(self, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
-        gate = self.gate.sigmoid()
-        return super().forward(gate * y, (1 - gate) * x)
-
-
 class SequentialWithResidual(nn.Sequential):
     @staticmethod
     def _residual_module(obj: Any) -> bool:
@@ -65,8 +46,7 @@ if __name__ == "__main__":
     assert not swr._residual_module(nn.ReLU)
     assert not swr._residual_module(Residual)
     assert swr._residual_module(Residual())
-    assert swr._residual_module(GatedResidual())
 
     # Test residual layers
-    for layer in (Residual(), GatedResidual(x.shape[-1])):
+    for layer in (Residual(),):
         assert layer(x, x).shape == x.shape
