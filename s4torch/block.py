@@ -40,8 +40,9 @@ class S4Block(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
-        pre_norm (bool): if ``True`` apply normalization before ``S4Layer()``,
-            otherwise apply prior to final dropout
+        norm_strategy (str): position of normalization relative to ``S4Layer()``.
+            Must be "pre" (before ``S4Layer()``), "post (after ``S4Layer()``)
+            or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
@@ -56,7 +57,7 @@ class S4Block(nn.Module):
         l_max: int,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
-        pre_norm: bool = False,
+        norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
         pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
@@ -67,17 +68,28 @@ class S4Block(nn.Module):
         self.p_dropout = p_dropout
         self.activation = activation
         self.norm_type = norm_type
-        self.pre_norm = pre_norm
+        self.norm_strategy = norm_strategy
         self.pooling = pooling
 
+        if norm_strategy not in ("pre", "post", "both"):
+            raise ValueError(f"Unexpected norm_strategy, got '{norm_strategy}'")
+
         self.pipeline = SequentialWithResidual(
-            _make_norm(d_model, norm_type=norm_type) if pre_norm else nn.Identity(),
+            (
+                _make_norm(d_model, norm_type=norm_type)
+                if norm_strategy in ("pre", "both")
+                else nn.Identity()
+            ),
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
             nn.Linear(d_model, d_model, bias=True),
             Residual(),
-            nn.Identity() if pre_norm else _make_norm(d_model, norm_type=norm_type),
+            (
+                _make_norm(d_model, norm_type=norm_type)
+                if norm_strategy in ("post", "both")
+                else nn.Identity()
+            ),
             TemporalAdapter(pooling) if pooling else nn.Identity(),
             nn.Dropout(p_dropout),
         )

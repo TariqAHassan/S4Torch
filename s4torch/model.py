@@ -62,8 +62,9 @@ class S4Model(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
-        pre_norm (bool): if ``True`` apply normalization before ``S4Layer()``,
-            otherwise apply prior to final dropout
+        norm_strategy (str): position of normalization relative to ``S4Layer()``.
+            Must be "pre" (before ``S4Layer()``), "post (after ``S4Layer()``)
+            or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
         pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
@@ -82,7 +83,7 @@ class S4Model(nn.Module):
         collapse: bool = False,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
-        pre_norm: bool = False,
+        norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
         pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
@@ -95,7 +96,7 @@ class S4Model(nn.Module):
         self.l_max = l_max
         self.collapse = collapse
         self.p_dropout = p_dropout
-        self.pre_norm = pre_norm
+        self.norm_strategy = norm_strategy
         self.norm_type = norm_type
         self.pooling = pooling
 
@@ -115,7 +116,7 @@ class S4Model(nn.Module):
                     l_max=seq_len,
                     p_dropout=p_dropout,
                     activation=activation,
-                    pre_norm=pre_norm,
+                    norm_strategy=norm_strategy,
                     norm_type=norm_type,
                     pooling=pooling if pooling and pool_ok else None,
                 )
