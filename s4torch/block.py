@@ -96,7 +96,9 @@ class S4Block(nn.Module):
 
 
 if __name__ == "__main__":
-    N = 32
+    from experiments.utils import count_parameters
+
+    N = 64
     d_input = 1
     d_model = 128
     d_output = 128
@@ -105,4 +107,6 @@ if __name__ == "__main__":
     u = torch.randn(1, l_max, d_model)
 
     s4block = S4Block(d_model, n=N, l_max=l_max, norm_type="batch")
+    print(f"S4Block Params: {count_parameters(s4block):,}")
+
     assert s4block(u).shape == u.shape

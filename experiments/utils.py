@@ -33,6 +33,10 @@ class OutputPaths:
         return self._make_dir(f"checkpoints/{self.run_name}")
 
 
+def count_parameters(model: nn.Module) -> int:
+    return sum(p.numel() for p in model.parameters())
+
+
 def to_sequence(x: torch.Tensor) -> torch.Tensor:
     if x.ndim <= 1:
         raise IndexError(f"Input must be at least 2D, got {x.ndim}D")

@@ -143,6 +143,8 @@ class S4Model(nn.Module):
 
 
 if __name__ == "__main__":
+    from experiments.utils import count_parameters
+
     N = 64
     d_input = 1
     d_model = 128
@@ -161,4 +163,6 @@ if __name__ == "__main__":
         l_max=l_max,
         collapse=False,
     )
+    print(f"S4Model Params: {count_parameters(s4model):,}")
+
     assert s4model(u).shape == (u.shape[0], s4model.seq_len_out, s4model.d_output)
