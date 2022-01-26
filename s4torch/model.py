@@ -133,7 +133,7 @@ class S4Model(nn.Module):
             y (torch.Tensor): a tensor of the form ``[BATCH, D_OUTPUT]`` if ``collapse``
                 is ``True`` and ``[BATCH, SEQ_LEN // (POOL_KERNEL ** n_block), D_INPUT]``
                 otherwise, where ``POOL_KERNEL`` is the kernel size of the ``pooling``
-                layer. (If ``pooling`` is ``None``, ``POOL_KERNEL=1``.)
+                layer. (Note that ``POOL_KERNEL=1`` if ``pooling`` is ``None``.)
 
         """
         y = self.encoder(u)
