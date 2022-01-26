@@ -33,8 +33,11 @@ class OutputPaths:
         return self._make_dir(f"checkpoints/{self.run_name}")
 
 
-def count_parameters(model: nn.Module) -> int:
-    return sum(p.numel() for p in model.parameters())
+def count_parameters(model: nn.Module, ajust_complex: bool = True) -> int:
+    def get_count(param: nn.Parameter) -> int:
+        return param.numel() * (param.is_complex() + ajust_complex)
+
+    return sum(get_count(p) for p in model.parameters())
 
 
 def to_sequence(x: torch.Tensor) -> torch.Tensor:
