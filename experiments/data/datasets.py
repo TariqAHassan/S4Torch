@@ -14,7 +14,6 @@ from typing import Any, Optional
 import numpy as np
 import torch
 from torch.nn import functional as F
-from torch.utils.data import DataLoader
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, Lambda, ToTensor
@@ -239,12 +238,8 @@ class RepeatedSpeechCommands10(SpeechCommands10):
 
 if __name__ == "__main__":
     smnist_wrapper = SMnistDataset()
-    train_dl = smnist_wrapper.make_dataloader(train=True, batch_size=1)
-    val_dl = smnist_wrapper.make_dataloader(train=False, batch_size=1)
 
     assert smnist_wrapper.NAME == "SMNIST"
-    assert isinstance(train_dl, DataLoader)
-    assert isinstance(val_dl, DataLoader)
     assert isinstance(smnist_wrapper.classes, list)
     assert smnist_wrapper.n_classes == 10
     assert smnist_wrapper.channels == 0
