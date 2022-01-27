@@ -42,6 +42,7 @@ def _train_val_split(
 
 class SequenceDataset:
     NAME: Optional[str] = None
+    SAVE_NAME: Optional[str] = None
     classes: list[str | int]
 
     def __init__(
@@ -57,10 +58,11 @@ class SequenceDataset:
     @property
     def root_dir(self) -> Path:
         """Directory where data is stored."""
-        if not isinstance(self.NAME, str):
+        name = self.SAVE_NAME or self.NAME
+        if not isinstance(name, str):
             raise TypeError("`NAME` not set")
 
-        path = Path("~/datasets").expanduser().joinpath(self.NAME)
+        path = Path("~/datasets").expanduser().joinpath(name)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -248,6 +250,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
 
 class SpeechCommands10(SpeechCommands):
     NAME: str = "SPEECH_COMMANDS_10"
+    SAVE_NAME = "SPEECH_COMMANDS"
     classes = [
         "yes",
         "no",
@@ -264,6 +267,7 @@ class SpeechCommands10(SpeechCommands):
 
 class RepeatedSpeechCommands10(SpeechCommands10):
     NAME: str = "REPEATED_SPEECH_COMMANDS10"
+    SAVE_NAME = "SPEECH_COMMANDS"
     N_REPEATS: int = 4
     classes: list[int] = list(range(N_REPEATS - 1))
 
