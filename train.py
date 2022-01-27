@@ -21,17 +21,22 @@ from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
-from experiments.data.wrappers import DatasetWrapper
+from experiments.data.datasets import SequenceDataset
 from experiments.metrics import compute_accuracy
-from experiments.utils import OutputPaths, parse_params_in_s4blocks, to_sequence
+from experiments.utils import (
+    OutputPaths,
+    enumerate_subclasses,
+    parse_params_in_s4blocks,
+    to_sequence,
+)
 from s4torch import S4Model
 
-_DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
+_SEQUENCE_DATASETS = {d.NAME: d for d in enumerate_subclasses(SequenceDataset)}  # noqa
 
 
-def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
+def _get_seq_wrapper(name: str) -> Type[SequenceDataset]:
     try:
-        return _DATASET_WRAPPERS[name.upper()]
+        return _SEQUENCE_DATASETS[name.upper()]
     except KeyError:
         raise KeyError(f"Unknown dataset '{name}'")
 
@@ -57,15 +62,15 @@ class LighteningS4Model(pl.LightningModule):
         self,
         model: S4Model,
         hparams: Namespace,
-        ds_wrapper: DatasetWrapper,
+        seq_dataset: SequenceDataset,
     ) -> None:
         super().__init__()
         self.model = model
         self.save_hyperparameters(
             hparams,
-            ignore=("model", "hparams", "ds_wrapper"),
+            ignore=("model", "hparams", "seq_dataset"),
         )
-        self.ds_wrapper = ds_wrapper
+        self.seq_dataset = seq_dataset
 
         self.loss = nn.CrossEntropyLoss()
 
@@ -131,13 +136,13 @@ class LighteningS4Model(pl.LightningModule):
         }
 
     def train_dataloader(self) -> DataLoader:
-        return self.ds_wrapper.make_dataloader(
+        return self.seq_dataset.make_dataloader(
             train=True,
             batch_size=self.hparams.batch_size,
         )
 
     def val_dataloader(self) -> DataLoader:
-        return self.ds_wrapper.make_dataloader(
+        return self.seq_dataset.make_dataloader(
             train=False,
             batch_size=self.hparams.batch_size,
         )
@@ -177,8 +182,8 @@ def main(
     ``ReduceLROnPlateau`` learning rate scheduler.
 
     Args:
-        dataset (str): datasets to train against. Available options:
-            {', '.join([f"'{n}'" for n in sorted(_DATASET_WRAPPERS)])}.
+        dataset (str): dataset to train against. Available options:
+            {', '.join([f"'{n}'" for n in sorted(_SEQUENCE_DATASETS)])}.
             Case-insensitive.
         batch_size (int): number of subprocesses to use for data loading.
             If ``batch_size=-1`` the largest possible batch size will be used.
@@ -219,16 +224,16 @@ def main(
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
     auto_scale_batch_size = batch_size == -1
-    ds_wrapper = _get_ds_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)  # noqa
+    seq_dataset = _get_seq_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)
 
     pl_model = LighteningS4Model(
         S4Model(
-            d_input=max(1, ds_wrapper.channels),
+            d_input=max(1, seq_dataset.channels),
             d_model=d_model,
-            d_output=ds_wrapper.n_classes,
+            d_output=seq_dataset.n_classes,
             n_blocks=n_blocks,
             n=s4_n,
-            l_max=math.prod(ds_wrapper.shape),
+            l_max=math.prod(seq_dataset.shape),
             collapse=True,  # classification
             p_dropout=p_dropout,
             pooling=_parse_pooling(pooling),
@@ -236,7 +241,7 @@ def main(
             norm_type=norm_type,
         ),
         hparams=hparams,
-        ds_wrapper=ds_wrapper,
+        seq_dataset=seq_dataset,
     )
 
     trainer = pl.Trainer(

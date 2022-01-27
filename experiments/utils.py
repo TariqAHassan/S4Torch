@@ -40,6 +40,13 @@ def count_parameters(model: nn.Module, ajust_complex: bool = True) -> int:
     return sum(get_count(p) for p in model.parameters())
 
 
+def enumerate_subclasses(cls: object) -> Iterable[object]:
+    for sub_cls in cls.__subclasses__():
+        yield sub_cls
+        if sub_cls.__subclasses__():
+            yield from enumerate_subclasses(sub_cls)
+
+
 def to_sequence(x: torch.Tensor) -> torch.Tensor:
     if x.ndim <= 1:
         raise IndexError(f"Input must be at least 2D, got {x.ndim}D")

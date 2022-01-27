@@ -6,62 +6,226 @@
         * https://github.com/HazyResearch/state-spaces
 
 """
+from __future__ import annotations
+
+from multiprocessing import cpu_count
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
+import numpy as np
 import torch
+from torch.cuda import is_available as cuda_available
 from torch.nn import functional as F
+from torch.utils.data import DataLoader, Dataset, random_split
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
+from torchvision.datasets import CIFAR10, MNIST
+from torchvision.transforms import Compose, Lambda, ToTensor
+
+from experiments.data.transforms import build_permute_transform
 
 
-class SpeechCommands(_SpeechCommands):
+def _train_val_split(
+    dataset: Dataset,
+    val_prop: float,
+    seed: int = 42,
+) -> tuple[Dataset, Dataset]:
+    if 0 < val_prop < 1:
+        n_val = int(len(dataset) * val_prop)
+    else:
+        raise ValueError("`val_prop` expected to be on (0, 1)")
+    return random_split(
+        dataset=dataset,
+        lengths=[len(dataset) - n_val, n_val],
+        generator=torch.Generator().manual_seed(seed),
+    )
+
+
+class SequenceDataset:
+    NAME: Optional[str] = None
+    SAVE_NAME: Optional[str] = None
+    classes: list[str | int]
+
+    def __init__(
+        self,
+        val_prop: float = 0.1,
+        seed: int = 42,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(self.root_dir, **kwargs)
+        self.val_prop = val_prop
+        self.seed = seed
+
+    @property
+    def root_dir(self) -> Path:
+        """Directory where data is stored."""
+        name = self.SAVE_NAME or self.NAME
+        if not isinstance(name, str):
+            raise TypeError("`NAME` not set")
+
+        path = Path("~/datasets").expanduser().joinpath(name)
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    @property
+    def n_classes(self) -> int:
+        """Number of classes in the dataset."""
+        return len(self.classes)
+
+    @property
+    def channels(self) -> int:
+        """Channels in the data, as returned by the dataset."""
+        raise NotImplementedError()
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        """Shape of the data in the dataset."""
+        raise NotImplementedError()
+
+    def make_dataloader(
+        self,
+        train: bool,
+        batch_size: int,
+        num_workers: int = max(1, cpu_count() - 1),
+        pin_memory: Optional[bool] = None,
+        **kwargs: Any,
+    ) -> tuple[DataLoader, Dataset]:
+        """Make a dataloaders.
+
+        Args:
+            train (bool): if ``True``, return the training dataloader.
+                Otherwise, return the validation dataloader.
+            batch_size (int): number of samples in each path
+            num_workers (int): number of subprocesses to use for data loading
+            pin_memory (bool, optional): if ``True`` tensors will be copied into
+                CUDA pinned memory prior to being emitted. If ``None`` this will
+                be determined automatically based on the availability of a device
+                with CUDA support (GPU).
+            **kwargs (Keyword Arguments): keyword arguments to pass to ``DataLoader()``
+
+        Returns:
+            dataloader (DataLoader): a torch dataloader
+
+        """
+        ds_train, ds_val = _train_val_split(self, self.val_prop, seed=self.seed)
+        return DataLoader(
+            dataset=ds_train if train else ds_val,
+            batch_size=batch_size,
+            shuffle=train,
+            num_workers=num_workers,
+            pin_memory=cuda_available() if pin_memory is None else pin_memory,
+            **kwargs,
+        )
+
+
+class SMnistDataset(SequenceDataset, MNIST):
+    NAME: str = "SMNIST"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            download=True,
+            transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
+            **kwargs,
+        )
+
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (28 * 28,)  # noqa
+
+
+class PMnistDataset(SequenceDataset, MNIST):
+    NAME: str = "PMNIST"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            download=True,
+            transform=Compose([ToTensor(), build_permute_transform((28 * 28,))]),
+            **kwargs,
+        )
+
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (28 * 28,)  # noqa
+
+
+class SCIFAR10Dataset(SequenceDataset, CIFAR10):
+    NAME: str = "SCIFAR10"
+    classes = list(range(10))
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(
+            download=True,
+            transform=Compose(
+                [
+                    ToTensor(),
+                    Lambda(lambda t: t.flatten(1).transpose(-2, -1)),
+                ]
+            ),
+            **kwargs,
+        )
+
+    @property
+    def channels(self) -> int:
+        return 3
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (32 * 32,)  # noqa
+
+
+class SpeechCommands(SequenceDataset, _SpeechCommands):
+    NAME: str = "SPEECH_COMMANDS"
     SEGMENT_SIZE: int = 16_000
+    classes = [
+        "bed",
+        "cat",
+        "down",
+        "five",
+        "forward",
+        "go",
+        "house",
+        "left",
+        "marvin",
+        "no",
+        "on",
+        "right",
+        "sheila",
+        "tree",
+        "up",
+        "visual",
+        "yes",
+        "backward",
+        "bird",
+        "dog",
+        "eight",
+        "follow",
+        "four",
+        "happy",
+        "learn",
+        "nine",
+        "off",
+        "one",
+        "seven",
+        "six",
+        "stop",
+        "three",
+        "two",
+        "wow",
+        "zero",
+    ]
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(download=True, **kwargs)
 
         self.label_ids = {l: e for e, l in enumerate(self.classes)}
         self._walker = [i for i in self._walker if Path(i).parent.name in self.classes]
-
-    @property
-    def classes(self) -> list[str]:
-        return [
-            "bed",
-            "cat",
-            "down",
-            "five",
-            "forward",
-            "go",
-            "house",
-            "left",
-            "marvin",
-            "no",
-            "on",
-            "right",
-            "sheila",
-            "tree",
-            "up",
-            "visual",
-            "yes",
-            "backward",
-            "bird",
-            "dog",
-            "eight",
-            "follow",
-            "four",
-            "happy",
-            "learn",
-            "nine",
-            "off",
-            "one",
-            "seven",
-            "six",
-            "stop",
-            "three",
-            "two",
-            "wow",
-            "zero",
-        ]
 
     def _pad(self, y: torch.Tensor) -> torch.Tensor:
         if y.shape[-1] == self.SEGMENT_SIZE:
@@ -75,8 +239,66 @@ class SpeechCommands(_SpeechCommands):
         y, _, label, *_ = super().__getitem__(item)
         return self._pad(y.squeeze(0)), self.label_ids[label]
 
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (self.SEGMENT_SIZE,)  # noqa
+
 
 class SpeechCommands10(SpeechCommands):
+    NAME: str = "SPEECH_COMMANDS_10"
+    SAVE_NAME = "SPEECH_COMMANDS"
+    classes = [
+        "yes",
+        "no",
+        "up",
+        "down",
+        "left",
+        "right",
+        "on",
+        "off",
+        "stop",
+        "go",
+    ]
+
+
+class RepeatedSpeechCommands10(SpeechCommands10):
+    NAME: str = "REPEATED_SPEECH_COMMANDS10"
+    SAVE_NAME = "SPEECH_COMMANDS"
+    N_REPEATS: int = 4
+    classes: list[int] = list(range(N_REPEATS - 1))
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        y, _ = super().__getitem__(item)
+
+        hot_idx = np.random.uniform(size=self.N_REPEATS) >= 0.5
+        if not hot_idx.any():  # ensure at least one
+            hot_idx[np.random.choice(self.N_REPEATS - 1)] = True
+
+        label = 0
+        chunks = list()
+        for use_y in hot_idx:
+            chunks.append(y if use_y else torch.zeros_like(y))
+            label += int(use_y)
+        return torch.cat(chunks), label
+
     @property
-    def classes(self) -> list[str]:
-        return ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
+    def shape(self) -> tuple[int, ...]:
+        return (self.N_REPEATS * self.SEGMENT_SIZE,)  # noqa
+
+
+if __name__ == "__main__":
+    smnist_wrapper = SMnistDataset()
+    train_dl = smnist_wrapper.make_dataloader(train=True, batch_size=1)
+    val_dl = smnist_wrapper.make_dataloader(train=False, batch_size=1)
+
+    assert smnist_wrapper.NAME == "SMNIST"
+    assert isinstance(train_dl, DataLoader)
+    assert isinstance(val_dl, DataLoader)
+    assert isinstance(smnist_wrapper.classes, list)
+    assert smnist_wrapper.n_classes == 10
+    assert smnist_wrapper.channels == 0
+    assert smnist_wrapper.shape == (28 * 28,)
