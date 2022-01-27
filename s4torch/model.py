@@ -10,7 +10,6 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch.aux.layers import TemporalBasePooling
 from s4torch.block import S4Block
 
 
@@ -19,8 +18,10 @@ def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
         return 1
     elif isinstance(pool_kernel, tuple):
         return pool_kernel[0]
-    else:
+    elif isinstance(pool_kernel, int):
         return pool_kernel
+    else:
+        raise TypeError(f"Unable to parse `pool_kernel`, got {pool_kernel}")
 
 
 def _seq_length_schedule(
@@ -58,13 +59,16 @@ class S4Model(nn.Module):
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
-        pooling (TemporalBasePooling, optional): pooling method to use
-            following each ``S4Block()``.
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
+        norm_strategy (str): position of normalization relative to ``S4Layer()``.
+            Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
+            or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
+            following each ``S4Block()``.
 
     """
 
@@ -77,10 +81,11 @@ class S4Model(nn.Module):
         n: int,
         l_max: int,
         collapse: bool = False,
-        pooling: Optional[TemporalBasePooling] = None,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
+        norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
+        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -90,9 +95,10 @@ class S4Model(nn.Module):
         self.n = n
         self.l_max = l_max
         self.collapse = collapse
-        self.pooling = pooling
         self.p_dropout = p_dropout
+        self.norm_strategy = norm_strategy
         self.norm_type = norm_type
+        self.pooling = pooling
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
@@ -104,16 +110,15 @@ class S4Model(nn.Module):
         self.decoder = nn.Linear(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
-                nn.Sequential(
-                    S4Block(
-                        d_model=d_model,
-                        n=n,
-                        l_max=seq_len,
-                        p_dropout=p_dropout,
-                        activation=activation,
-                        norm_type=norm_type,
-                    ),
-                    pooling if pooling and pool_ok else nn.Identity(),
+                S4Block(
+                    d_model=d_model,
+                    n=n,
+                    l_max=seq_len,
+                    p_dropout=p_dropout,
+                    activation=activation,
+                    norm_strategy=norm_strategy,
+                    norm_type=norm_type,
+                    pooling=pooling if pooling and pool_ok else None,
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
@@ -129,7 +134,7 @@ class S4Model(nn.Module):
             y (torch.Tensor): a tensor of the form ``[BATCH, D_OUTPUT]`` if ``collapse``
                 is ``True`` and ``[BATCH, SEQ_LEN // (POOL_KERNEL ** n_block), D_INPUT]``
                 otherwise, where ``POOL_KERNEL`` is the kernel size of the ``pooling``
-                layer. (If ``pooling`` is ``None``, ``POOL_KERNEL=1``.)
+                layer. (Note that ``POOL_KERNEL=1`` if ``pooling`` is ``None``.)
 
         """
         y = self.encoder(u)
@@ -139,11 +144,13 @@ class S4Model(nn.Module):
 
 
 if __name__ == "__main__":
-    N = 32
+    from experiments.utils import count_parameters
+
+    N = 64
     d_input = 1
     d_model = 128
     d_output = 128
-    n_blocks = 3
+    n_blocks = 6
     l_max = 784
 
     u = torch.randn(1, l_max, d_input)
@@ -156,6 +163,7 @@ if __name__ == "__main__":
         n=N,
         l_max=l_max,
         collapse=False,
-        pooling=None,
     )
+    print(f"S4Model Params: {count_parameters(s4model):,}")
+
     assert s4model(u).shape == (u.shape[0], s4model.seq_len_out, s4model.d_output)

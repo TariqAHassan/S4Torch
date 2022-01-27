@@ -23,9 +23,8 @@ from torch.utils.data import DataLoader
 
 from experiments.data.wrappers import DatasetWrapper
 from experiments.metrics import compute_accuracy
-from experiments.utils import OutputPaths, to_sequence
+from experiments.utils import OutputPaths, parse_params_in_s4blocks, to_sequence
 from s4torch import S4Model
-from s4torch.aux.layers import TemporalAvgPooling, TemporalMaxPooling
 
 _DATASET_WRAPPERS = {d.NAME: d for d in DatasetWrapper.__subclasses__()}
 
@@ -37,9 +36,7 @@ def _get_ds_wrapper(name: str) -> Type[DatasetWrapper]:
         raise KeyError(f"Unknown dataset '{name}'")
 
 
-def _parse_pooling(
-    pooling: Optional[str],
-) -> Optional[TemporalAvgPooling | TemporalMaxPooling]:
+def _parse_pooling(pooling: Optional[str]) -> Optional[nn.AvgPool1d | nn.MaxPool1d]:
     if pooling is None:
         return None
     elif pooling.count("_") != 1:
@@ -48,9 +45,9 @@ def _parse_pooling(
     method, digit = pooling.split("_")
     kernel_size = int(digit)
     if method == "avg":
-        return TemporalAvgPooling(kernel_size)
+        return nn.AvgPool1d(kernel_size)
     elif method == "max":
-        return TemporalMaxPooling(kernel_size)
+        return nn.MaxPool1d(kernel_size)
     else:
         raise ValueError(f"Unsupported pooling method '{method}'")
 
@@ -108,13 +105,15 @@ class LighteningS4Model(pl.LightningModule):
         self.log("val_acc", value=accs.mean(), prog_bar=True)
 
     def configure_optimizers(self) -> dict[str, Any]:
+        s4layer_params, other_params = parse_params_in_s4blocks(self.model.blocks)
         optimizer = torch.optim.AdamW(
             [
                 {
-                    "params": self.model.blocks.parameters(),
+                    "params": s4layer_params,
                     "lr": self.hparams.lr_s4,
                     "weight_decay": 0.0,
                 },
+                {"params": other_params},
                 {"params": self.model.encoder.parameters()},
                 {"params": self.model.decoder.parameters()},
             ],
@@ -154,8 +153,9 @@ def main(
     n_blocks: int = 6,
     s4_n: int = 64,
     p_dropout: float = 0.2,
-    pooling: Optional[str] = None,
+    norm_strategy: str = "post",
     norm_type: Optional[str] = "layer",
+    pooling: Optional[str] = None,
     # Training
     max_epochs: Optional[int] = None,
     lr: float = 1e-2,
@@ -187,10 +187,13 @@ def main(
         n_blocks (int): number of S4 blocks to construct
         s4_n (int): dimensionality of the state representation
         p_dropout (float): probability of elements being set to zero
-        pooling (str, optional): pooling method to use. Options: ``None``,
-            ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
+        norm_strategy (str): position of normalization relative to ``S4Layer()``.
+            Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
+            or "both" (before and after ``S4Layer()``).
         norm_type (str, optional): type of normalization to use.
             Options: ``batch``, ``layer``, ``None``.
+        pooling (str, optional): pooling method to use. Options: ``None``,
+            ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
@@ -229,6 +232,7 @@ def main(
             collapse=True,  # classification
             p_dropout=p_dropout,
             pooling=_parse_pooling(pooling),
+            norm_strategy=norm_strategy,
             norm_type=norm_type,
         ),
         hparams=hparams,
