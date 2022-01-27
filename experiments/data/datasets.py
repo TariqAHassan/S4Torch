@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
+import numpy as np
 from torch.nn import functional as F
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 
@@ -80,3 +81,25 @@ class SpeechCommands10(SpeechCommands):
     @property
     def classes(self) -> list[str]:
         return ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
+
+
+class RepeatedSpeechCommands10(SpeechCommands):
+    N_REPEATS: int = 4
+
+    @property
+    def classes(self) -> list[str]:
+        return range(self.N_REPEATS - 1)
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        y, _ = super().__getitem__(item)
+
+        hot_idx = np.random.uniform(size=self.N_REPEATS) >= 0.5
+        if not hot_idx.any():  # ensure at least one
+            hot_idx[np.random.choice(self.N_REPEATS - 1)] = True
+
+        label = 0
+        chunks = list()
+        for use_y in hot_idx:
+            chunks.append(y if use_y else torch.zeros_like(y))
+            label += int(use_y)
+        return torch.cat(chunks), label
