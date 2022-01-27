@@ -8,36 +8,18 @@
 """
 from __future__ import annotations
 
-from multiprocessing import cpu_count
 from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
 import torch
-from torch.cuda import is_available as cuda_available
 from torch.nn import functional as F
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, Lambda, ToTensor
 
 from experiments.data.transforms import build_permute_transform
-
-
-def _train_val_split(
-    dataset: Dataset,
-    val_prop: float,
-    seed: int = 42,
-) -> tuple[Dataset, Dataset]:
-    if 0 < val_prop < 1:
-        n_val = int(len(dataset) * val_prop)
-    else:
-        raise ValueError("`val_prop` expected to be on (0, 1)")
-    return random_split(
-        dataset=dataset,
-        lengths=[len(dataset) - n_val, n_val],
-        generator=torch.Generator().manual_seed(seed),
-    )
 
 
 class SequenceDataset:
@@ -80,41 +62,6 @@ class SequenceDataset:
     def shape(self) -> tuple[int, ...]:
         """Shape of the data in the dataset."""
         raise NotImplementedError()
-
-    def make_dataloader(
-        self,
-        train: bool,
-        batch_size: int,
-        num_workers: int = max(1, cpu_count() - 1),
-        pin_memory: Optional[bool] = None,
-        **kwargs: Any,
-    ) -> tuple[DataLoader, Dataset]:
-        """Make a dataloaders.
-
-        Args:
-            train (bool): if ``True``, return the training dataloader.
-                Otherwise, return the validation dataloader.
-            batch_size (int): number of samples in each path
-            num_workers (int): number of subprocesses to use for data loading
-            pin_memory (bool, optional): if ``True`` tensors will be copied into
-                CUDA pinned memory prior to being emitted. If ``None`` this will
-                be determined automatically based on the availability of a device
-                with CUDA support (GPU).
-            **kwargs (Keyword Arguments): keyword arguments to pass to ``DataLoader()``
-
-        Returns:
-            dataloader (DataLoader): a torch dataloader
-
-        """
-        ds_train, ds_val = _train_val_split(self, self.val_prop, seed=self.seed)
-        return DataLoader(
-            dataset=ds_train if train else ds_val,
-            batch_size=batch_size,
-            shuffle=train,
-            num_workers=num_workers,
-            pin_memory=cuda_available() if pin_memory is None else pin_memory,
-            **kwargs,
-        )
 
 
 class SMnistDataset(SequenceDataset, MNIST):

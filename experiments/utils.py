@@ -12,6 +12,7 @@ from torch import nn
 
 from s4torch.block import S4Block
 from s4torch.layer import S4Layer
+from torch.utils.data import Dataset, random_split
 
 
 class OutputPaths:
@@ -40,11 +41,27 @@ def count_parameters(model: nn.Module, ajust_complex: bool = True) -> int:
     return sum(get_count(p) for p in model.parameters())
 
 
-def enumerate_subclasses(cls: object) -> Iterable[object]:
+def enumerate_subclasses(cls: type) -> Iterable[type]:
     for sub_cls in cls.__subclasses__():
         yield sub_cls
         if sub_cls.__subclasses__():
             yield from enumerate_subclasses(sub_cls)
+
+
+def train_val_split(
+    dataset: Dataset,
+    val_prop: float,
+    seed: int = 42,
+) -> tuple[Dataset, Dataset]:
+    if 0 < val_prop < 1:
+        n_val = int(len(dataset) * val_prop)
+    else:
+        raise ValueError("`val_prop` expected to be on (0, 1)")
+    return random_split(
+        dataset=dataset,
+        lengths=[len(dataset) - n_val, n_val],
+        generator=torch.Generator().manual_seed(seed),
+    )
 
 
 def to_sequence(x: torch.Tensor) -> torch.Tensor:
