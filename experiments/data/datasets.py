@@ -285,6 +285,10 @@ class RepeatedSpeechCommands10(SpeechCommands10):
             label += int(use_y)
         return torch.cat(chunks), label
 
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (self.N_REPEATS * self.SEGMENT_SIZE,)  # noqa
+
 
 if __name__ == "__main__":
     smnist_wrapper = SMnistDataset()
