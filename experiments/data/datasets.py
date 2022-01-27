@@ -226,7 +226,7 @@ class RepeatedSpeechCommands10(SpeechCommands10):
         if not hot_idx.any():  # ensure at least one
             hot_idx[np.random.choice(self.N_REPEATS - 1)] = True
 
-        label = 0
+        label = -1
         chunks = list()
         for use_y in hot_idx:
             chunks.append(y if use_y else torch.zeros_like(y))
