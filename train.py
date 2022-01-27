@@ -205,6 +205,7 @@ def main(
     patience: int = 5,
     gpus: int = -1,
     # Auxiliary
+    precision: int | str = 32,
     output_dir: str = "~/s4-output",
     save_top_k: int = 0,
     seed: int = 1234,
@@ -243,6 +244,7 @@ def main(
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
+        precision (int, str): precision of floating point operations
         output_dir (str): directory where output (logs and checkpoints) will be saved
         save_top_k (int): save top k models, as determined by the ``val_acc``
             metric. (Defaults to ``0``, which disables model saving.)
@@ -280,6 +282,7 @@ def main(
     trainer = pl.Trainer(
         max_epochs=max_epochs,
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
+        precision=precision,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
         auto_scale_batch_size=auto_scale_batch_size,
