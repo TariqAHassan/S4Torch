@@ -74,9 +74,9 @@ def _cauchy_dot(v: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
 
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
-    ud = rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
-    Kd = rfft(F.pad(K, pad=(0, l_max)), dim=-1)
-    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
+    ud = rfft(F.pad(u.float(), pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = rfft(F.pad(K.float(), pad=(0, l_max)), dim=-1)
+    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1).type_as(u)
 
 
 class S4Layer(nn.Module):
@@ -174,7 +174,7 @@ class S4Layer(nn.Module):
         at_roots = self._compute_roots()
         out = ifft(at_roots, n=self.l_max, dim=-1)
         conv = torch.stack([i[self.ifft_order] for i in out]).real
-        return conv.float().unsqueeze(0)
+        return conv.unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.
