@@ -213,9 +213,11 @@ class SpeechCommands10(SpeechCommands):
 
 class RepeatedSpeechCommands10(SpeechCommands10):
     NAME: str = "REPEATED_SPEECH_COMMANDS10"
-    SAVE_NAME = "SPEECH_COMMANDS"
     N_REPEATS: int = 4
-    classes: list[int] = list(range(N_REPEATS - 1))
+
+    @property
+    def n_classes(self) -> int:
+        return self.N_REPEATS
 
     def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
         y, _ = super().__getitem__(item)
