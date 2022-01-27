@@ -25,9 +25,9 @@ from experiments.data.datasets import SequenceDataset
 from experiments.metrics import compute_accuracy
 from experiments.utils import (
     OutputPaths,
+    enumerate_subclasses,
     parse_params_in_s4blocks,
     to_sequence,
-    enumerate_subclasses,
 )
 from s4torch import S4Model
 
