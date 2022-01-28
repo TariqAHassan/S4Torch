@@ -8,16 +8,20 @@
 """
 from __future__ import annotations
 
+import json
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
 import torch
+import torchaudio
 from torch.nn import functional as F
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, Lambda, ToTensor
 
+from experiments.data._utils import download, untar
 from experiments.data.transforms import build_permute_transform
 
 
@@ -236,6 +240,83 @@ class RepeatedSpeechCommands10(SpeechCommands10):
     @property
     def shape(self) -> tuple[int, ...]:
         return (self.N_REPEATS * self.SEGMENT_SIZE,)  # noqa
+
+
+class NSynthDataset(SequenceDataset):
+    NAME = "NSYNTH"
+    SEGMENT_SIZE: int = 64_000
+    classes = [
+        "bass",
+        "brass",
+        "flute",
+        "guitar",
+        "keyboard",
+        "mallet",
+        "organ",
+        "reed",
+        "string",
+        "vocal",
+    ]
+    URLS = {
+        "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",
+        "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",
+        "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",
+    }
+
+    def __init__(
+        self,
+        val_prop: float = 0.1,
+        seed: int = 42,
+        **kwargs: Any,
+    ) -> None:
+        self.val_prop = val_prop
+        self.seed = seed
+
+        if kwargs.get("download", True):
+            self.download()
+
+    def download(self, force: bool = False) -> None:
+        for url in self.URLS.values():
+            filename, *_ = Path(url).stem.split(".")
+            if force or not self.root_dir.joinpath(filename).is_dir():
+                untar(
+                    download(url, dst=self.root_dir),
+                    dst=self.root_dir,
+                    delete_src=True,
+                    verbose=True,
+                )
+
+    @cached_property
+    def metadata(self) -> dict[str, dict[str, Any]]:
+        metadata = dict()
+        for path in self.root_dir.rglob("*.json"):
+            with path.open("r") as f:
+                payload = json.load(f)
+                for k, v in payload.items():
+                    v["split"] = path.parent.name.split("-")[-1]
+                metadata |= payload
+        return metadata
+
+    @cached_property
+    def files(self) -> list[Path]:
+        return list(self.root_dir.rglob("*.wav"))
+
+    def __len__(self) -> int:
+        return len(self.files)
+
+    @property
+    def channels(self) -> int:
+        return 0
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (self.SEGMENT_SIZE,)  # noqa
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        path = self.files[10]
+        y, _ = torchaudio.load(path, normalize=True)  # noqa
+        label = self.metadata[path.stem]["instrument_family"]
+        return y.squeeze(0), label
 
 
 if __name__ == "__main__":
