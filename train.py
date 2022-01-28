@@ -159,8 +159,8 @@ class LighteningS4Model(pl.LightningModule):
     def train_dataloader(self) -> DataLoader:
         ds_train, _ = train_val_split(
             self.seq_dataset,
-            self.seq_dataset.val_prop,
-            seed=self.seq_dataset.seed,
+            val_prop=self.hparams.val_prop,
+            seed=self.hparams.seed,
         )
         return _make_dataloader(
             ds_train,
@@ -171,8 +171,8 @@ class LighteningS4Model(pl.LightningModule):
     def val_dataloader(self) -> DataLoader:
         _, ds_val = train_val_split(
             self.seq_dataset,
-            self.seq_dataset.val_prop,
-            seed=self.seq_dataset.seed,
+            val_prop=self.hparams.val_prop,
+            seed=self.hparams.seed,
         )
         return _make_dataloader(
             ds_val,

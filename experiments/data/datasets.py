@@ -32,15 +32,8 @@ class SequenceDataset:
     SAVE_NAME: Optional[str] = None
     class_names: Optional[list[str | int]] = None
 
-    def __init__(
-        self,
-        val_prop: float = 0.1,
-        seed: int = 42,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(**kwargs)
-        self.val_prop = val_prop
-        self.seed = seed
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def root_dir(self) -> Path:
@@ -270,16 +263,8 @@ class NSynthDataset(SequenceDataset):
         "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",  # noqa
     }
 
-    def __init__(
-        self,
-        val_prop: float = 0.1,
-        seed: int = 42,
-        download: bool = True,
-        verbose: bool = True,
-    ) -> None:
-        super().__init__(val_prop, seed=seed)
-        self.val_prop = val_prop
-        self.seed = seed
+    def __init__(self, download: bool = True, verbose: bool = True) -> None:
+        super().__init__()
         self.download = download
         self.verbose = verbose
 
