@@ -184,7 +184,7 @@ python train.py \
 Notes:
 
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
-  * The `nsynth_short` contains waveforms which are truncated after 2 seconds, where the `nsyth` dataset contains 
+  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, where the `nsyth` dataset contains 
     the full four-second waveforms.
 
 ## Components
