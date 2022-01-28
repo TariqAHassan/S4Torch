@@ -184,9 +184,8 @@ python train.py \
 Notes:
 
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
-  * The `nsynth_fast` dataset is a "fast" version of the `nsyth` dataset. Concretely, only the first
-    two seconds of each recording are used and the number of batches per epoch is limited in 
-    order to increase the frequency of validation.
+  * The `nsynth_short` contains waveforms which are truncated after 2 seconds, where the `nsyth` dataset contains 
+    the full four-second waveforms.
 
 ## Components
 
