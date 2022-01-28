@@ -24,7 +24,7 @@ from s4torch import S4Model
 N = 32
 d_input = 1
 d_model = 128
-d_output = 128
+n_classes = 10
 n_blocks = 3
 seq_len = 784
 
@@ -33,13 +33,13 @@ u = torch.randn(1, seq_len, d_input)
 s4model = S4Model(
     d_input,
     d_model=d_model,
-    d_output=d_output,
+    d_output=n_classes,
     n_blocks=n_blocks,
     n=N,
     l_max=seq_len,
-    collapse=False,  # if `True` average predictions over time prior to decoding
+    collapse=True,  # average predictions over time prior to decoding
 )
-assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
+assert s4model(u).shape == (u.shape[0], n_classes)
 ```
 
 ## Training
