@@ -253,7 +253,7 @@ def main(
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
     auto_scale_batch_size = batch_size == -1
-    seq_dataset = _get_seq_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)
+    seq_dataset = _get_seq_wrapper(dataset.strip())()
 
     pl_model = LighteningS4Model(
         S4Model(
