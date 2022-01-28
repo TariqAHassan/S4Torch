@@ -160,7 +160,7 @@ Notes:
 
 ```sh
 python train.py \
-  --dataset=nsynth_fast \
+  --dataset=nsynth_short \
   --batch_size=-1 \
   --val_prop=0.05 \
   --max_epochs=150 \
