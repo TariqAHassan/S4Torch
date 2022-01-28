@@ -156,29 +156,23 @@ class LighteningS4Model(pl.LightningModule):
             "lr_scheduler": {"scheduler": scheduler, "monitor": "val_acc"},
         }
 
-    def train_dataloader(self) -> DataLoader:
-        ds_train, _ = train_val_split(
+    def _make_dataloader(self, train: bool) -> DataLoader:
+        ds_train, ds_val = train_val_split(
             self.seq_dataset,
             val_prop=self.hparams.val_prop,
             seed=self.hparams.seed,
         )
         return _make_dataloader(
-            ds_train,
-            shuffle=True,
+            ds_train if train else ds_val,
+            shuffle=train,
             batch_size=self.hparams.batch_size,
         )
 
+    def train_dataloader(self) -> DataLoader:
+        return self._make_dataloader(train=True)
+
     def val_dataloader(self) -> DataLoader:
-        _, ds_val = train_val_split(
-            self.seq_dataset,
-            val_prop=self.hparams.val_prop,
-            seed=self.hparams.seed,
-        )
-        return _make_dataloader(
-            ds_val,
-            shuffle=False,
-            batch_size=self.hparams.batch_size,
-        )
+        return self._make_dataloader(train=False)
 
 
 def main(
