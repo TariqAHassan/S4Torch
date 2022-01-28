@@ -274,9 +274,9 @@ class NSynthDataset(SequenceDataset):
         self.download = download
 
         if download:
-            self.download_data()
+            self.fetch_data()
 
-    def download_data(self, force: bool = False) -> None:
+    def fetch_data(self, force: bool = False) -> None:
         for url in self.URLS.values():
             dirname, *_ = Path(url).stem.split(".")
             if force or not self.root_dir.joinpath(dirname).is_dir():
