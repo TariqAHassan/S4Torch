@@ -9,10 +9,10 @@ from typing import Iterable
 
 import torch
 from torch import nn
+from torch.utils.data import Dataset, random_split
 
 from s4torch.block import S4Block
 from s4torch.layer import S4Layer
-from torch.utils.data import Dataset, random_split
 
 
 class OutputPaths:

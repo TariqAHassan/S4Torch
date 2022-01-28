@@ -8,10 +8,10 @@ from typing import Union
 import numpy as np
 import torch
 from torch import nn
+from torch import view_as_real as as_real
 from torch.fft import ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
-from torch import view_as_real as as_real
 
 
 def _log_step_initializer(

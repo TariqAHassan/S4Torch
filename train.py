@@ -8,29 +8,29 @@ from __future__ import annotations
 import math
 from argparse import Namespace
 from datetime import datetime
+from multiprocessing import cpu_count
 from typing import Any, Optional, Tuple, Type
 
 import fire
 import pytorch_lightning as pl
 import torch
-from multiprocessing import cpu_count
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
+from torch.cuda import is_available as cuda_available
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader, Dataset
-from torch.cuda import is_available as cuda_available
 
 from experiments.data.datasets import SequenceDataset
 from experiments.metrics import compute_accuracy
 from experiments.utils import (
     OutputPaths,
     enumerate_subclasses,
-    train_val_split,
     parse_params_in_s4blocks,
     to_sequence,
+    train_val_split,
 )
 from s4torch import S4Model
 
