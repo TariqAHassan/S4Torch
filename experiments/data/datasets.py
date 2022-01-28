@@ -24,6 +24,8 @@ from torchvision.transforms import Compose, Lambda, ToTensor
 from experiments.data._utils import download, untar
 from experiments.data.transforms import build_permute_transform
 
+_DATASETS_DIRECTORY = Path("~/datasets")
+
 
 class SequenceDataset:
     NAME: Optional[str] = None
@@ -47,7 +49,7 @@ class SequenceDataset:
         if not isinstance(name, str):
             raise TypeError("`NAME` not set")
 
-        path = Path("~/datasets").expanduser().joinpath(name)
+        path = _DATASETS_DIRECTORY.expanduser().joinpath(name)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
