@@ -73,6 +73,12 @@ class SequenceDataset:
         """Shape of the data in the dataset."""
         raise NotImplementedError()
 
+    def __len__(self) -> int:
+        raise NotImplementedError()
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        raise NotImplementedError()
+
 
 class SMnistDataset(SequenceDataset, MNIST):
     NAME: str = "SMNIST"
