@@ -301,9 +301,6 @@ class NSynthDataset(SequenceDataset):
     def files(self) -> list[Path]:
         return list(self.root_dir.rglob("*.wav"))
 
-    def __len__(self) -> int:
-        return len(self.files)
-
     @property
     def channels(self) -> int:
         return 1
@@ -311,6 +308,9 @@ class NSynthDataset(SequenceDataset):
     @property
     def shape(self) -> tuple[int, ...]:
         return (self.SEGMENT_SIZE,)  # noqa
+
+    def __len__(self) -> int:
+        return len(self.files)
 
     def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
         path = self.files[item]
