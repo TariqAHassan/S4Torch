@@ -256,18 +256,6 @@ class RepeatedSpeechCommands10(SpeechCommands10):
 class NSynthDataset(SequenceDataset):
     NAME = "NSYNTH"
     SEGMENT_SIZE: int = 64_000
-    class_names = [
-        "bass",
-        "brass",
-        "flute",
-        "guitar",
-        "keyboard",
-        "mallet",
-        "organ",
-        "reed",
-        "string",
-        "vocal",
-    ]
     URLS = {
         "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",  # noqa
         "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",  # noqa
@@ -309,6 +297,10 @@ class NSynthDataset(SequenceDataset):
                     v["split"] = path.parent.name.split("-")[-1]
                 metadata |= payload
         return metadata
+
+    @cached_property
+    def classes(self) -> list[str | int]:
+        return sorted({v["instrument_family_str"] for v in self.metadata.values()})
 
     @cached_property
     def files(self) -> list[Path]:
