@@ -164,7 +164,7 @@ python train.py \
   --batch_size=-1 \
   --val_prop=0.05 \
   --max_epochs=150 \
-  --limit_train_batches=0.25 \
+  --limit_train_batches=0.0125 \
   --lr=1e-2 \
   --n_blocks=4 \
   --pooling=avg_2 \
