@@ -8,6 +8,7 @@ from typing import Union
 import numpy as np
 import torch
 from torch import nn
+from torch import view_as_real as as_real
 from torch.fft import ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
@@ -22,7 +23,7 @@ def _log_step_initializer(
     return tensor * scale + np.log(dt_min)
 
 
-def _make_omega_l(l_max: int, dtype: torch.dtype) -> torch.Tensor:
+def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
     return torch.arange(l_max).type(dtype).mul(2j * np.pi / l_max).exp()
 
 
@@ -73,9 +74,9 @@ def _cauchy_dot(v: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
 
 def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
     l_max = u.shape[1]
-    ud = rfft(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
-    Kd = rfft(F.pad(K, pad=(0, l_max)), dim=-1)
-    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1)
+    ud = rfft(F.pad(u.float(), pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = rfft(F.pad(K.float(), pad=(0, l_max)), dim=-1)
+    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1).type_as(u)
 
 
 class S4Layer(nn.Module):
@@ -104,9 +105,9 @@ class S4Layer(nn.Module):
         self.l_max = l_max
 
         p, q, lambda_ = map(lambda t: t.type(torch.complex64), _make_p_q_lambda(n))
-        self.p = nn.Parameter(p)
-        self.q = nn.Parameter(q)
-        self.lambda_ = nn.Parameter(lambda_.unsqueeze(0).unsqueeze(1))
+        self._p = nn.Parameter(as_real(p))
+        self._q = nn.Parameter(as_real(q))
+        self._lambda_ = nn.Parameter(as_real(lambda_).unsqueeze(0).unsqueeze(1))
 
         self.register_buffer(
             "omega_l",
@@ -120,17 +121,37 @@ class S4Layer(nn.Module):
             ),
         )
 
-        self.B = nn.Parameter(
-            init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
+        self._B = nn.Parameter(
+            as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
-        self.Ct = nn.Parameter(
-            init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
+        self._Ct = nn.Parameter(
+            as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
         self.D = nn.Parameter(torch.ones(1, 1, d_model))
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
     def extra_repr(self) -> str:
         return f"d_model={self.d_model}, n={self.n}, l_max={self.l_max}"
+
+    @property
+    def p(self) -> torch.Tensor:
+        return torch.view_as_complex(self._p)
+
+    @property
+    def q(self) -> torch.Tensor:
+        return torch.view_as_complex(self._q)
+
+    @property
+    def lambda_(self) -> torch.Tensor:
+        return torch.view_as_complex(self._lambda_)
+
+    @property
+    def B(self) -> torch.Tensor:
+        return torch.view_as_complex(self._B)
+
+    @property
+    def Ct(self) -> torch.Tensor:
+        return torch.view_as_complex(self._Ct)
 
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
@@ -153,7 +174,7 @@ class S4Layer(nn.Module):
         at_roots = self._compute_roots()
         out = ifft(at_roots, n=self.l_max, dim=-1)
         conv = torch.stack([i[self.ifft_order] for i in out]).real
-        return conv.float().unsqueeze(0)
+        return conv.unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
         """Forward pass.

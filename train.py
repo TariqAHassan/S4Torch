@@ -8,29 +8,28 @@ from __future__ import annotations
 import math
 from argparse import Namespace
 from datetime import datetime
+from multiprocessing import cpu_count
 from typing import Any, Optional, Tuple, Type
 
 import fire
 import pytorch_lightning as pl
 import torch
-from multiprocessing import cpu_count
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.utils.data import DataLoader, Dataset
-from torch.cuda import is_available as cuda_available
+from torch.utils.data import DataLoader
 
 from experiments.data.datasets import SequenceDataset
 from experiments.metrics import compute_accuracy
 from experiments.utils import (
     OutputPaths,
     enumerate_subclasses,
-    train_val_split,
     parse_params_in_s4blocks,
     to_sequence,
+    train_val_split,
 )
 from s4torch import S4Model
 
@@ -58,24 +57,6 @@ def _parse_pooling(pooling: Optional[str]) -> Optional[nn.AvgPool1d | nn.MaxPool
         return nn.MaxPool1d(kernel_size)
     else:
         raise ValueError(f"Unsupported pooling method '{method}'")
-
-
-def _make_dataloader(
-    dataset: Dataset,
-    shuffle: bool,
-    batch_size: int,
-    num_workers: int = max(1, cpu_count() - 1),
-    pin_memory: Optional[bool] = None,
-    **kwargs: Any,
-) -> DataLoader:
-    return DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        pin_memory=cuda_available() if pin_memory is None else pin_memory,
-        **kwargs,
-    )
 
 
 class LighteningS4Model(pl.LightningModule):
@@ -156,29 +137,25 @@ class LighteningS4Model(pl.LightningModule):
             "lr_scheduler": {"scheduler": scheduler, "monitor": "val_acc"},
         }
 
-    def train_dataloader(self) -> DataLoader:
-        ds_train, _ = train_val_split(
+    def _make_dataloader(self, train: bool) -> DataLoader:
+        ds_train, ds_val = train_val_split(
             self.seq_dataset,
-            self.seq_dataset.val_prop,
-            seed=self.seq_dataset.seed,
+            val_prop=self.hparams.val_prop,
+            seed=self.hparams.seed,
         )
-        return _make_dataloader(
-            ds_train,
-            shuffle=True,
+        return DataLoader(
+            ds_train if train else ds_val,
             batch_size=self.hparams.batch_size,
+            shuffle=train,
+            num_workers=max(1, cpu_count() - 1),
+            pin_memory=torch.cuda.is_available(),
         )
 
+    def train_dataloader(self) -> DataLoader:
+        return self._make_dataloader(train=True)
+
     def val_dataloader(self) -> DataLoader:
-        _, ds_val = train_val_split(
-            self.seq_dataset,
-            self.seq_dataset.val_prop,
-            seed=self.seq_dataset.seed,
-        )
-        return _make_dataloader(
-            ds_val,
-            shuffle=False,
-            batch_size=self.hparams.batch_size,
-        )
+        return self._make_dataloader(train=False)
 
 
 def main(
@@ -196,6 +173,7 @@ def main(
     pooling: Optional[str] = None,
     # Training
     max_epochs: Optional[int] = None,
+    limit_train_batches: int | float = 1.0,
     lr: float = 1e-2,
     lr_s4: float = 1e-3,
     min_lr: float = 1e-6,
@@ -205,6 +183,7 @@ def main(
     patience: int = 5,
     gpus: int = -1,
     # Auxiliary
+    precision: int | str = 32,
     output_dir: str = "~/s4-output",
     save_top_k: int = 0,
     seed: int = 1234,
@@ -233,6 +212,8 @@ def main(
         pooling (str, optional): pooling method to use. Options: ``None``,
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
+        limit_train_batches (int, float): number (``int``) or proportion (``float``)
+            of the total number of training batches to use on each epoch 
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
         min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use
@@ -243,6 +224,7 @@ def main(
         patience (int): number of epochs with no improvement to wait before
             reducing the learning rate
         gpus (int): number of GPUs to use. If ``-1``, use all available GPUs.
+        precision (int, str): precision of floating point operations
         output_dir (str): directory where output (logs and checkpoints) will be saved
         save_top_k (int): save top k models, as determined by the ``val_acc``
             metric. (Defaults to ``0``, which disables model saving.)
@@ -257,7 +239,7 @@ def main(
     run_name = f"s4-model-{datetime.utcnow().isoformat()}"
     output_paths = OutputPaths(output_dir, run_name=run_name)
     auto_scale_batch_size = batch_size == -1
-    seq_dataset = _get_seq_wrapper(dataset.strip())(val_prop=val_prop, seed=seed)
+    seq_dataset = _get_seq_wrapper(dataset.strip())()
 
     pl_model = LighteningS4Model(
         S4Model(
@@ -280,9 +262,11 @@ def main(
     trainer = pl.Trainer(
         max_epochs=max_epochs,
         gpus=(torch.cuda.device_count() if gpus == -1 else gpus) or None,
+        precision=precision,
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
         auto_scale_batch_size=auto_scale_batch_size,
+        limit_train_batches=limit_train_batches,
         logger=TensorBoardLogger(output_paths.logs, name=run_name),
         callbacks=ModelCheckpoint(
             dirpath=output_paths.checkpoints,

@@ -156,6 +156,37 @@ Notes:
   * Batch normalization appears to work best with a "post" normalization strategy, whereas 
     a "pre" normalization strategy appears to work best with layer normalization.
 
+#### [NSynth](https://magenta.tensorflow.org/datasets/nsynth)
+
+```sh
+python train.py \
+  --dataset=nsynth_short \
+  --batch_size=-1 \
+  --val_prop=0.01 \
+  --max_epochs=150 \
+  --limit_train_batches=0.025 \
+  --lr=1e-2 \
+  --n_blocks=4 \
+  --pooling=avg_2 \
+  --d_model=128 \
+  --weight_decay=0.0 \
+  --norm_type=batch \
+  --norm_strategy=post \
+  --p_dropout=0.1 \
+  --precision=16 \
+  --accumulate_grad=4 \
+  --patience=10
+```
+
+**Validation Accuracy**: 39.6% after 5 epochs, 54.1% after 17 epochs (best) <br>
+**Speed**: ~1.6 batches/second
+
+Notes:
+
+  * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
+  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsyth` dataset contains 
+    the full four-second waveforms.
+
 ## Components
 
 ### Layer

@@ -10,7 +10,7 @@ from torch import nn
 
 
 class Residual(nn.Module):
-    def forward(self, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, y: torch.Tensor, x: torch.Tensor) -> torch.Tensor:  # noqa
         return y + x
 
 

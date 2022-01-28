@@ -8,33 +8,32 @@
 """
 from __future__ import annotations
 
+import json
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
 import torch
+import torchaudio
 from torch.nn import functional as F
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, Lambda, ToTensor
 
-from experiments.data.transforms import build_permute_transform
+from experiments.data._utils import download, untar
+from experiments.data._transforms import build_permute_transform
+
+_DATASETS_DIRECTORY = Path("~/datasets")
 
 
 class SequenceDataset:
     NAME: Optional[str] = None
     SAVE_NAME: Optional[str] = None
-    classes: list[str | int]
+    class_names: Optional[list[str | int]] = None
 
-    def __init__(
-        self,
-        val_prop: float = 0.1,
-        seed: int = 42,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(self.root_dir, **kwargs)
-        self.val_prop = val_prop
-        self.seed = seed
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
 
     @property
     def root_dir(self) -> Path:
@@ -43,13 +42,21 @@ class SequenceDataset:
         if not isinstance(name, str):
             raise TypeError("`NAME` not set")
 
-        path = Path("~/datasets").expanduser().joinpath(name)
+        path = _DATASETS_DIRECTORY.expanduser().joinpath(name)
         path.mkdir(parents=True, exist_ok=True)
         return path
 
     @property
+    def classes(self) -> list[str | int]:
+        """Names of all classes in the dataset."""
+        if self.class_names:
+            return self.class_names
+        else:
+            raise AttributeError("Class names not set")
+
+    @property
     def n_classes(self) -> int:
-        """Number of classes in the dataset."""
+        """Number of class_names in the dataset."""
         return len(self.classes)
 
     @property
@@ -62,12 +69,20 @@ class SequenceDataset:
         """Shape of the data in the dataset."""
         raise NotImplementedError()
 
+    def __len__(self) -> int:
+        raise NotImplementedError()
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        raise NotImplementedError()
+
 
 class SMnistDataset(SequenceDataset, MNIST):
     NAME: str = "SMNIST"
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
             **kwargs,
@@ -87,6 +102,7 @@ class PMnistDataset(SequenceDataset, MNIST):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose([ToTensor(), build_permute_transform((28 * 28,))]),
             **kwargs,
@@ -103,10 +119,11 @@ class PMnistDataset(SequenceDataset, MNIST):
 
 class SCIFAR10Dataset(SequenceDataset, CIFAR10):
     NAME: str = "SCIFAR10"
-    classes = list(range(10))
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose(
                 [
@@ -129,7 +146,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
 class SpeechCommands(SequenceDataset, _SpeechCommands):
     NAME: str = "SPEECH_COMMANDS"
     SEGMENT_SIZE: int = 16_000
-    classes = [
+    class_names: list[str] = [
         "bed",
         "cat",
         "down",
@@ -168,7 +185,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
     ]
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(download=True, **kwargs)
+        super().__init__(root=self.root_dir, download=True, **kwargs)
 
         self.label_ids = {l: e for e, l in enumerate(self.classes)}
         self._walker = [i for i in self._walker if Path(i).parent.name in self.classes]
@@ -197,7 +214,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
 class SpeechCommands10(SpeechCommands):
     NAME: str = "SPEECH_COMMANDS_10"
     SAVE_NAME = "SPEECH_COMMANDS"
-    classes = [
+    class_names: list[int] = [
         "yes",
         "no",
         "up",
@@ -226,7 +243,7 @@ class RepeatedSpeechCommands10(SpeechCommands10):
         if not hot_idx.any():  # ensure at least one
             hot_idx[np.random.choice(self.N_REPEATS - 1)] = True
 
-        label = 0
+        label = -1
         chunks = list()
         for use_y in hot_idx:
             chunks.append(y if use_y else torch.zeros_like(y))
@@ -236,6 +253,77 @@ class RepeatedSpeechCommands10(SpeechCommands10):
     @property
     def shape(self) -> tuple[int, ...]:
         return (self.N_REPEATS * self.SEGMENT_SIZE,)  # noqa
+
+
+class NSynthDataset(SequenceDataset):
+    NAME: str = "NSYNTH"
+    SEGMENT_SIZE: int = 64_000
+    URLS: dict[str, str] = {
+        "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",  # noqa
+        "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",  # noqa
+        "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",  # noqa
+    }
+
+    def __init__(self, download: bool = True, verbose: bool = True) -> None:
+        super().__init__()
+        self.download = download
+        self.verbose = verbose
+
+        if download:
+            self.fetch_data()
+
+    def fetch_data(self, force: bool = False) -> None:
+        for url in self.URLS.values():
+            dirname, *_ = Path(url).stem.split(".")
+            if force or not self.root_dir.joinpath(dirname).is_dir():
+                untar(
+                    download(url, dst=self.root_dir, verbose=self.verbose),
+                    dst=self.root_dir,
+                    delete_src=True,
+                    verbose=self.verbose,
+                )
+
+    @cached_property
+    def metadata(self) -> dict[str, dict[str, Any]]:
+        metadata = dict()
+        for path in self.root_dir.rglob("*.json"):
+            with path.open("r") as f:
+                payload = json.load(f)
+                for v in payload.values():
+                    v["split"] = path.parent.name.split("-")[-1]
+                metadata |= payload
+        return metadata
+
+    @cached_property
+    def classes(self) -> list[str | int]:
+        return sorted({v["instrument_family_str"] for v in self.metadata.values()})
+
+    @cached_property
+    def files(self) -> list[Path]:
+        return list(self.root_dir.rglob("*.wav"))
+
+    @property
+    def channels(self) -> int:
+        return 1
+
+    @property
+    def shape(self) -> tuple[int, ...]:
+        return (self.SEGMENT_SIZE,)  # noqa
+
+    def __len__(self) -> int:
+        return len(self.files)
+
+    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
+        path = self.files[item]
+        y, _ = torchaudio.load(path, normalize=True, channels_first=False)  # noqa
+        label = self.metadata[path.stem]["instrument_family"]
+        return y[: self.SEGMENT_SIZE, ...], label
+
+
+class NSynthDatasetShort(NSynthDataset):
+    NAME: str = "NSYNTH_SHORT"
+    SAVE_NAME: str = "NSYNTH"
+    SEGMENT_SIZE: int = 64_000 // 2
 
 
 if __name__ == "__main__":
