@@ -278,8 +278,8 @@ class NSynthDataset(SequenceDataset):
 
     def download_data(self, force: bool = False) -> None:
         for url in self.URLS.values():
-            filename, *_ = Path(url).stem.split(".")
-            if force or not self.root_dir.joinpath(filename).is_dir():
+            dirname, *_ = Path(url).stem.split(".")
+            if force or not self.root_dir.joinpath(dirname).is_dir():
                 untar(
                     download(url, dst=self.root_dir),
                     dst=self.root_dir,
