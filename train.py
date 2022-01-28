@@ -173,6 +173,7 @@ def main(
     pooling: Optional[str] = None,
     # Training
     max_epochs: Optional[int] = None,
+    limit_train_batches: int | float = 1.0,
     lr: float = 1e-2,
     lr_s4: float = 1e-3,
     min_lr: float = 1e-6,
@@ -211,6 +212,8 @@ def main(
         pooling (str, optional): pooling method to use. Options: ``None``,
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
+        limit_train_batches (int, float): number (``int``) or proportion (``float``)
+            of the total number of training batches to use on each epoch 
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
         min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use
@@ -263,6 +266,7 @@ def main(
         stochastic_weight_avg=swa,
         accumulate_grad_batches=accumulate_grad,
         auto_scale_batch_size=auto_scale_batch_size,
+        limit_train_batches=limit_train_batches,
         logger=TensorBoardLogger(output_paths.logs, name=run_name),
         callbacks=ModelCheckpoint(
             dirpath=output_paths.checkpoints,
