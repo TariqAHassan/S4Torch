@@ -34,9 +34,9 @@ class OutputPaths:
         return self._make_dir(f"checkpoints/{self.run_name}")
 
 
-def count_parameters(model: nn.Module, ajust_complex: bool = True) -> int:
+def count_parameters(model: nn.Module, adjust_complex: bool = True) -> int:
     def get_count(param: nn.Parameter) -> int:
-        return param.numel() * (param.is_complex() + ajust_complex)
+        return param.numel() * (param.is_complex() + adjust_complex)
 
     return sum(get_count(p) for p in model.parameters())
 
