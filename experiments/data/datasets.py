@@ -320,7 +320,7 @@ class NSynthDataset(SequenceDataset):
         return (self.SEGMENT_SIZE,)  # noqa
 
     def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
-        path = self.files[10]
+        path = self.files[item]
         y, _ = torchaudio.load(path, normalize=True, channels_first=False)  # noqa
         label = self.metadata[path.stem]["instrument_family"]
         return y, label
