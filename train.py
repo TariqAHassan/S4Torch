@@ -21,7 +21,7 @@ from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 from torch.cuda import is_available as cuda_available
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 from experiments.data.datasets import SequenceDataset
 from experiments.metrics import compute_accuracy
@@ -58,24 +58,6 @@ def _parse_pooling(pooling: Optional[str]) -> Optional[nn.AvgPool1d | nn.MaxPool
         return nn.MaxPool1d(kernel_size)
     else:
         raise ValueError(f"Unsupported pooling method '{method}'")
-
-
-def _make_dataloader(
-    dataset: Dataset,
-    shuffle: bool,
-    batch_size: int,
-    num_workers: int = max(1, cpu_count() - 1),
-    pin_memory: Optional[bool] = None,
-    **kwargs: Any,
-) -> DataLoader:
-    return DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        pin_memory=cuda_available() if pin_memory is None else pin_memory,
-        **kwargs,
-    )
 
 
 class LighteningS4Model(pl.LightningModule):
@@ -162,10 +144,12 @@ class LighteningS4Model(pl.LightningModule):
             val_prop=self.hparams.val_prop,
             seed=self.hparams.seed,
         )
-        return _make_dataloader(
+        return DataLoader(
             ds_train if train else ds_val,
-            shuffle=train,
             batch_size=self.hparams.batch_size,
+            shuffle=train,
+            num_workers=max(1, cpu_count() - 1),
+            pin_memory=cuda_available(),
         )
 
     def train_dataloader(self) -> DataLoader:
