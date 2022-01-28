@@ -36,7 +36,7 @@ class SequenceDataset:
         seed: int = 42,
         **kwargs: Any,
     ) -> None:
-        super().__init__(self.root_dir, **kwargs)
+        super().__init__(**kwargs)
         self.val_prop = val_prop
         self.seed = seed
 
@@ -61,7 +61,7 @@ class SequenceDataset:
     @property
     def n_classes(self) -> int:
         """Number of class_names in the dataset."""
-        return len(self.class_names)
+        return len(self.classes)
 
     @property
     def channels(self) -> int:
@@ -80,6 +80,7 @@ class SMnistDataset(SequenceDataset, MNIST):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
             **kwargs,
@@ -99,6 +100,7 @@ class PMnistDataset(SequenceDataset, MNIST):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose([ToTensor(), build_permute_transform((28 * 28,))]),
             **kwargs,
@@ -119,6 +121,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
+            root=self.root_dir,
             download=True,
             transform=Compose(
                 [
@@ -180,7 +183,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
     ]
 
     def __init__(self, **kwargs: Any) -> None:
-        super().__init__(download=True, **kwargs)
+        super().__init__(root=self.root_dir, download=True, **kwargs)
 
         self.label_ids = {l: e for e, l in enumerate(self.classes)}
         self._walker = [i for i in self._walker if Path(i).parent.name in self.classes]
