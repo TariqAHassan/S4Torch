@@ -23,7 +23,7 @@ def _log_step_initializer(
     return tensor * scale + np.log(dt_min)
 
 
-def _make_omega_l(l_max: int, dtype: torch.dtype) -> torch.Tensor:
+def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
     return torch.arange(l_max).type(dtype).mul(2j * np.pi / l_max).exp()
 
 
