@@ -275,15 +275,17 @@ class NSynthDataset(SequenceDataset):
         self,
         val_prop: float = 0.1,
         seed: int = 42,
-        **kwargs: Any,
+        download: bool = True,
     ) -> None:
+        super().__init__(val_prop, seed=seed)
         self.val_prop = val_prop
         self.seed = seed
+        self.download = download
 
-        if kwargs.get("download", True):
-            self.download()
+        if download:
+            self.download_data()
 
-    def download(self, force: bool = False) -> None:
+    def download_data(self, force: bool = False) -> None:
         for url in self.URLS.values():
             filename, *_ = Path(url).stem.split(".")
             if force or not self.root_dir.joinpath(filename).is_dir():
