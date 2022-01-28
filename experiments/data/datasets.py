@@ -78,7 +78,7 @@ class SequenceDataset:
 
 class SMnistDataset(SequenceDataset, MNIST):
     NAME: str = "SMNIST"
-    class_names = list(range(10))
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
@@ -119,7 +119,7 @@ class PMnistDataset(SequenceDataset, MNIST):
 
 class SCIFAR10Dataset(SequenceDataset, CIFAR10):
     NAME: str = "SCIFAR10"
-    class_names = list(range(10))
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
@@ -146,7 +146,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
 class SpeechCommands(SequenceDataset, _SpeechCommands):
     NAME: str = "SPEECH_COMMANDS"
     SEGMENT_SIZE: int = 16_000
-    class_names = [
+    class_names: list[str] = [
         "bed",
         "cat",
         "down",
@@ -214,7 +214,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
 class SpeechCommands10(SpeechCommands):
     NAME: str = "SPEECH_COMMANDS_10"
     SAVE_NAME = "SPEECH_COMMANDS"
-    class_names = [
+    class_names: list[int] = [
         "yes",
         "no",
         "up",
@@ -256,9 +256,9 @@ class RepeatedSpeechCommands10(SpeechCommands10):
 
 
 class NSynthDataset(SequenceDataset):
-    NAME = "NSYNTH"
+    NAME: str = "NSYNTH"
     SEGMENT_SIZE: int = 64_000
-    URLS = {
+    URLS: dict[str, str] = {
         "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",  # noqa
         "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",  # noqa
         "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",  # noqa
