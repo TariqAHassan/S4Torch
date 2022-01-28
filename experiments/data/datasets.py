@@ -28,7 +28,7 @@ from experiments.data.transforms import build_permute_transform
 class SequenceDataset:
     NAME: Optional[str] = None
     SAVE_NAME: Optional[str] = None
-    classes: list[str | int]
+    class_names: Optional[list[str | int]] = None
 
     def __init__(
         self,
@@ -52,9 +52,16 @@ class SequenceDataset:
         return path
 
     @property
+    def classes(self) -> list[str | int]:
+        if self.class_names:
+            return self.class_names
+        else:
+            raise AttributeError("Class names not set")
+
+    @property
     def n_classes(self) -> int:
-        """Number of classes in the dataset."""
-        return len(self.classes)
+        """Number of class_names in the dataset."""
+        return len(self.class_names)
 
     @property
     def channels(self) -> int:
@@ -69,6 +76,7 @@ class SequenceDataset:
 
 class SMnistDataset(SequenceDataset, MNIST):
     NAME: str = "SMNIST"
+    class_names = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
@@ -107,7 +115,7 @@ class PMnistDataset(SequenceDataset, MNIST):
 
 class SCIFAR10Dataset(SequenceDataset, CIFAR10):
     NAME: str = "SCIFAR10"
-    classes = list(range(10))
+    class_names = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
@@ -133,7 +141,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
 class SpeechCommands(SequenceDataset, _SpeechCommands):
     NAME: str = "SPEECH_COMMANDS"
     SEGMENT_SIZE: int = 16_000
-    classes = [
+    class_names = [
         "bed",
         "cat",
         "down",
@@ -201,7 +209,7 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
 class SpeechCommands10(SpeechCommands):
     NAME: str = "SPEECH_COMMANDS_10"
     SAVE_NAME = "SPEECH_COMMANDS"
-    classes = [
+    class_names = [
         "yes",
         "no",
         "up",
@@ -245,7 +253,7 @@ class RepeatedSpeechCommands10(SpeechCommands10):
 class NSynthDataset(SequenceDataset):
     NAME = "NSYNTH"
     SEGMENT_SIZE: int = 64_000
-    classes = [
+    class_names = [
         "bass",
         "brass",
         "flute",
@@ -258,9 +266,9 @@ class NSynthDataset(SequenceDataset):
         "vocal",
     ]
     URLS = {
-        "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",
-        "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",
-        "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",
+        "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",  # noqa
+        "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",  # noqa
+        "test": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-test.jsonwav.tar.gz",  # noqa
     }
 
     def __init__(
