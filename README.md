@@ -178,7 +178,7 @@ python train.py \
   --patience=10
 ```
 
-**Validation Accuracy**: TBD <br>
+**Validation Accuracy**: 39.6% after 5 epochs, 54.1% after 17 epochs (best) <br>
 **Speed**: ~1.6 batches/second
 
 Notes:
