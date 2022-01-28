@@ -308,7 +308,7 @@ class NSynthDataset(SequenceDataset):
 
     @property
     def shape(self) -> tuple[int, ...]:
-        return (self.SEGMENT_SIZE,)  # noqa
+        return (self.SEGMENT_SIZE, self.channels)  # noqa
 
     def __len__(self) -> int:
         return len(self.files)
