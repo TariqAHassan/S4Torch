@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 from functools import cached_property
 from pathlib import Path
-from random import randint
 from typing import Any, Optional
 
 import numpy as np
@@ -321,16 +320,10 @@ class NSynthDataset(SequenceDataset):
         return y[: self.SEGMENT_SIZE, ...], label
 
 
-class NSynthDatasetFast(NSynthDataset):
-    NAME: str = "NSYNTH_FAST"
+class NSynthDatasetShort(NSynthDataset):
+    NAME: str = "NSYNTH_SHORT"
     SAVE_NAME: str = "NSYNTH"
     SEGMENT_SIZE: int = 64_000 // 2
-
-    def __len__(self) -> int:
-        return 10_000
-
-    def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
-        return super().__getitem__(randint(0, super().__len__()))
 
 
 if __name__ == "__main__":
