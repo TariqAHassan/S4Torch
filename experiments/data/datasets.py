@@ -323,7 +323,7 @@ class NSynthDataset(SequenceDataset):
 
 class NSynthDatasetFast(NSynthDataset):
     NAME: str = "NSYNTH_FAST"
-    SAVE_NAME = "NSYNTH"
+    SAVE_NAME: str = "NSYNTH"
     SEGMENT_SIZE: int = 64_000 // 2
 
     def __len__(self) -> int:
