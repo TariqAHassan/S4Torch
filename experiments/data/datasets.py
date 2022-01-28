@@ -289,7 +289,7 @@ class NSynthDataset(SequenceDataset):
         for path in self.root_dir.rglob("*.json"):
             with path.open("r") as f:
                 payload = json.load(f)
-                for k, v in payload.items():
+                for v in payload.values():
                     v["split"] = path.parent.name.split("-")[-1]
                 metadata |= payload
         return metadata
