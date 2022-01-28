@@ -162,9 +162,9 @@ Notes:
 python train.py \
   --dataset=nsynth_short \
   --batch_size=-1 \
-  --val_prop=0.05 \
+  --val_prop=0.01 \
   --max_epochs=150 \
-  --limit_train_batches=0.0125 \
+  --limit_train_batches=0.025 \
   --lr=1e-2 \
   --n_blocks=4 \
   --pooling=avg_2 \
