@@ -267,11 +267,13 @@ class NSynthDataset(SequenceDataset):
         val_prop: float = 0.1,
         seed: int = 42,
         download: bool = True,
+        verbose: bool = True,
     ) -> None:
         super().__init__(val_prop, seed=seed)
         self.val_prop = val_prop
         self.seed = seed
         self.download = download
+        self.verbose = verbose
 
         if download:
             self.fetch_data()
@@ -281,10 +283,10 @@ class NSynthDataset(SequenceDataset):
             dirname, *_ = Path(url).stem.split(".")
             if force or not self.root_dir.joinpath(dirname).is_dir():
                 untar(
-                    download(url, dst=self.root_dir),
+                    download(url, dst=self.root_dir, verbose=self.verbose),
                     dst=self.root_dir,
                     delete_src=True,
-                    verbose=True,
+                    verbose=self.verbose,
                 )
 
     @cached_property
