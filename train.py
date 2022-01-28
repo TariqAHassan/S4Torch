@@ -19,7 +19,6 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
-from torch.cuda import is_available as cuda_available
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
@@ -149,7 +148,7 @@ class LighteningS4Model(pl.LightningModule):
             batch_size=self.hparams.batch_size,
             shuffle=train,
             num_workers=max(1, cpu_count() - 1),
-            pin_memory=cuda_available(),
+            pin_memory=torch.cuda.is_available(),
         )
 
     def train_dataloader(self) -> DataLoader:
