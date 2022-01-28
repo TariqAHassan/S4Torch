@@ -311,7 +311,7 @@ class NSynthDataset(SequenceDataset):
 
     @property
     def channels(self) -> int:
-        return 0
+        return 1
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -319,9 +319,9 @@ class NSynthDataset(SequenceDataset):
 
     def __getitem__(self, item: int) -> tuple[torch.Tensor, int]:
         path = self.files[10]
-        y, _ = torchaudio.load(path, normalize=True)  # noqa
+        y, _ = torchaudio.load(path, normalize=True, channels_first=False)  # noqa
         label = self.metadata[path.stem]["instrument_family"]
-        return y.squeeze(0), label
+        return y, label
 
 
 if __name__ == "__main__":
