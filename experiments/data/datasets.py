@@ -48,6 +48,7 @@ class SequenceDataset:
 
     @property
     def classes(self) -> list[str | int]:
+        """Names of all classes in the dataset."""
         if self.class_names:
             return self.class_names
         else:
