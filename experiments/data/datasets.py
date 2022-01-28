@@ -23,7 +23,7 @@ from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, Lambda, ToTensor
 
 from experiments.data._utils import download, untar
-from experiments.data.transforms import build_permute_transform
+from experiments.data._transforms import build_permute_transform
 
 _DATASETS_DIRECTORY = Path("~/datasets")
 
