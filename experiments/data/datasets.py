@@ -257,7 +257,7 @@ class RepeatedSpeechCommands10(SpeechCommands10):
 
 class NSynthDataset(SequenceDataset):
     NAME: str = "NSYNTH"
-    SEGMENT_SIZE: int = 64_000 // 2
+    SEGMENT_SIZE: int = 64_000
     URLS: dict[str, str] = {
         "train": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-train.jsonwav.tar.gz",  # noqa
         "valid": "http://download.magenta.tensorflow.org/datasets/nsynth/nsynth-valid.jsonwav.tar.gz",  # noqa
@@ -317,7 +317,13 @@ class NSynthDataset(SequenceDataset):
         path = self.files[item]
         y, _ = torchaudio.load(path, normalize=True, channels_first=False)  # noqa
         label = self.metadata[path.stem]["instrument_family"]
-        return y[:self.SEGMENT_SIZE, ...], label
+        return y[: self.SEGMENT_SIZE, ...], label
+
+
+class NSynthDatasetHalfSeq(NSynthDataset):
+    NAME: str = "NSYNTH_HALF_SEQ"
+    SAVE_NAME = "NSYNTH"
+    SEGMENT_SIZE: int = 64_000 // 2
 
 
 if __name__ == "__main__":
