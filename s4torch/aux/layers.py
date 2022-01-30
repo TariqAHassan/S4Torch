@@ -19,9 +19,9 @@ class ComplexLinear(nn.Module):
         real = nn.Linear(in_features, out_features, bias=bias)
         imag = nn.Linear(in_features, out_features, bias=bias)
 
-        self.weight = real.weight + imag.weight.mul(1j)
+        self.weight = nn.Parameter(real.weight + imag.weight.mul(1j))
         if bias:
-            self.bias_tensor = real.bias + imag.bias.mul(1j)
+            self.bias_tensor = nn.Parameter(real.bias + imag.bias.mul(1j))
         else:
             self.bias_tensor = None
 
