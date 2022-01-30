@@ -5,6 +5,7 @@
 """
 import torch
 from torch import nn
+
 from s4torch.aux.layers import ComplexLinear
 
 

@@ -10,11 +10,11 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
+from s4torch._decoders import StandardDecoder
 from s4torch._encoders import StandardEncoder, WaveletEncoder
 from s4torch.block import S4Block
 from s4torch.dsp.cwt import Cwt
 from s4torch.dsp.utils import next_pow2
-from s4torch._decoders import StandardDecoder
 
 
 def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
