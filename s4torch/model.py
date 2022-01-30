@@ -14,6 +14,7 @@ from s4torch._encoders import StandardEncoder, WaveletEncoder
 from s4torch.block import S4Block
 from s4torch.dsp.cwt import Cwt
 from s4torch.dsp.utils import next_pow2
+from s4torch._decoders import StandardDecoder
 
 
 def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
@@ -121,7 +122,7 @@ class S4Model(nn.Module):
         else:
             self.encoder = StandardEncoder(self.d_input, d_model=self.d_model)
 
-        self.decoder = nn.Linear(self.d_model, self.d_output)
+        self.decoder = StandardDecoder(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
                 S4Block(
