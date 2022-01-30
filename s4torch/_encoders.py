@@ -9,17 +9,11 @@ from torch import nn
 from s4torch.dsp.cwt import Cwt
 
 
-class StandardEncoder(nn.Module):
+class StandardEncoder(nn.Linear):
     def __init__(self, d_input: int, d_model: int, bias: bool = True) -> None:
-        super().__init__()
+        super().__init__(in_features=d_input, out_features=d_model, bias=bias)
         self.d_input = d_input
         self.d_model = d_model
-        self.bias = bias
-
-        self.linear = nn.Linear(d_input, out_features=d_model, bias=bias)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.linear(x)
 
 
 class WaveletEncoder(nn.Module):
@@ -42,7 +36,10 @@ class WaveletEncoder(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.randn(2, 2 ** 16)
+    x = torch.randn(2, 2 ** 16, 1)
 
-    wtform = Wavelet(Cwt(x.shape[-1]), d_model=128)
-    assert wtform(x).shape == (*x.shape, wtform.d_model)
+    for tform in (
+        StandardEncoder(x.shape[-1], d_model=128),
+        WaveletEncoder(Cwt(x.shape[1]), d_model=128),
+    ):
+        assert tform(x).shape == (*x.shape[:-1], tform.d_model)
