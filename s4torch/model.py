@@ -10,7 +10,10 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
+from s4torch._encoders import StandardEncoder, WaveletEncoder
 from s4torch.block import S4Block
+from s4torch.dsp.cwt import Cwt
+from s4torch.dsp.utils import next_pow2
 
 
 def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
@@ -56,6 +59,8 @@ class S4Model(nn.Module):
         n_blocks (int): number of S4 blocks to construct
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
+        wavelet_tform (bool): if ``True`` encode signal using a
+            continuous wavelet transform (CWT).
         collapse (bool): if ``True`` average over time prior to
             decoding the result of the S4 block(s). (Useful for
             classification tasks.)
@@ -80,6 +85,7 @@ class S4Model(nn.Module):
         n_blocks: int,
         n: int,
         l_max: int,
+        wavelet_tform: bool = False,
         collapse: bool = False,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
@@ -94,6 +100,7 @@ class S4Model(nn.Module):
         self.n_blocks = n_blocks
         self.n = n
         self.l_max = l_max
+        self.wavelet_tform = wavelet_tform
         self.collapse = collapse
         self.p_dropout = p_dropout
         self.norm_strategy = norm_strategy
@@ -102,11 +109,18 @@ class S4Model(nn.Module):
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
-            l_max=l_max,
+            l_max=next_pow2(l_max) if wavelet_tform else l_max,
             pool_kernel=None if self.pooling is None else self.pooling.kernel_size,
         )
 
-        self.encoder = nn.Linear(self.d_input, self.d_model)
+        if wavelet_tform:
+            self.encoder = WaveletEncoder(
+                Cwt(next_pow2(self.l_max)),
+                d_model=self.d_model,
+            )
+        else:
+            self.encoder = StandardEncoder(self.d_input, d_model=self.d_model)
+
         self.decoder = nn.Linear(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
@@ -163,6 +177,7 @@ if __name__ == "__main__":
         n=N,
         l_max=l_max,
         collapse=False,
+        wavelet_tform=True,
     )
     print(f"S4Model Params: {count_parameters(s4model):,}")
 
