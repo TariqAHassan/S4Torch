@@ -158,6 +158,8 @@ Notes:
 
 #### [NSynth](https://magenta.tensorflow.org/datasets/nsynth)
 
+##### Raw Waveform
+
 ```sh
 python train.py \
   --dataset=nsynth_short \
@@ -186,6 +188,32 @@ Notes:
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
   * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsyth` dataset contains 
     the full four-second waveforms.
+
+##### Continuous Wavelet Transform (`|CWT(x)|`)
+
+```sh
+python train.py \
+  --dataset=nsynth_short \
+  --batch_size=-1 \
+  --val_prop=0.01 \
+  --max_epochs=150 \
+  --limit_train_batches=0.025 \
+  --lr=1e-2 \
+  --n_blocks=6 \
+  --pooling=avg_2 \
+  --d_model=100 \
+  --weight_decay=0.0 \
+  --norm_type=batch \
+  --norm_strategy=post \
+  --p_dropout=0.1 \
+  --precision=16 \
+  --accumulate_grad=1 \
+  --wavelet_tform=True \
+  --patience=10
+```
+
+**Validation Accuracy**: 52.7% after 5 epochs, 69.4% after 72 epochs (best) <br>
+**Speed**: ~1.3 batches/second
 
 ## Components
 
