@@ -65,7 +65,7 @@ class Cwt(nn.Module):
         self.wavelet = _check_parameter_wavelet(wavelet)
         self.freqs = freqs
 
-        # This tensor is too large store as buffer on GPU.
+        # This tensor is too large store as a buffer on GPU.
         # However, performance is still improved by caching
         # it on CPU memory and transferring to GPU as needed.
         self.psi_ft_bar = self._get_psi_ft_bar()
