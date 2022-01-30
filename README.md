@@ -24,7 +24,7 @@ from s4torch import S4Model
 N = 32
 d_input = 1
 d_model = 128
-d_output = 128
+n_classes = 10
 n_blocks = 3
 seq_len = 784
 
@@ -33,13 +33,13 @@ u = torch.randn(1, seq_len, d_input)
 s4model = S4Model(
     d_input,
     d_model=d_model,
-    d_output=d_output,
+    d_output=n_classes,
     n_blocks=n_blocks,
     n=N,
     l_max=seq_len,
-    collapse=False,  # if `True` average predictions over time prior to decoding
+    collapse=True,  # average predictions over time prior to decoding
 )
-assert s4model(u).shape == (*u.shape[:-1], s4model.d_output)
+assert s4model(u).shape == (u.shape[0], n_classes)
 ```
 
 ## Training
@@ -162,9 +162,9 @@ Notes:
 python train.py \
   --dataset=nsynth_short \
   --batch_size=-1 \
-  --val_prop=0.05 \
+  --val_prop=0.01 \
   --max_epochs=150 \
-  --limit_train_batches=0.0125 \
+  --limit_train_batches=0.025 \
   --lr=1e-2 \
   --n_blocks=4 \
   --pooling=avg_2 \
@@ -178,13 +178,13 @@ python train.py \
   --patience=10
 ```
 
-**Validation Accuracy**: TBD <br>
+**Validation Accuracy**: 39.6% after 5 epochs, 54.1% after 17 epochs (best) <br>
 **Speed**: ~1.6 batches/second
 
 Notes:
 
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
-  * The `nsynth_short` contains waveforms which are truncated after 2 seconds, where the `nsyth` dataset contains 
+  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsyth` dataset contains 
     the full four-second waveforms.
 
 ## Components
