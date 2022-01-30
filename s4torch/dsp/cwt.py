@@ -52,7 +52,7 @@ def _is_pow2(i: int) -> int:
     return log2(i) % 1 == 0
 
 
-def _pow2pad(x: torch.Tensor) -> torch.Tensor:
+def pow2pad(x: torch.Tensor) -> torch.Tensor:
     *_, t = x.shape
     if _is_pow2(t):
         return x
@@ -113,7 +113,7 @@ class Cwt(nn.Module):
         x = torch.randn(1, self.n0)
         sj, *_ = self._get_params()
 
-        x_ft = torch.fft.fft(_pow2pad(x), dim=-1)
+        x_ft = torch.fft.fft(pow2pad(x), dim=-1)
         N = x_ft.shape[-1]
         ftfreqs = 2 * np.pi * np.fft.fftfreq(N, self.dt)
 
@@ -135,7 +135,7 @@ class Cwt(nn.Module):
         if _next_pow2(x.shape[-1]) != self.n0:
             raise IndexError(f"Next power of two greater than n0 ({self.n0})")
 
-        x_ft = torch.fft.fft(_pow2pad(x), dim=-1).unsqueeze(1)
+        x_ft = torch.fft.fft(pow2pad(x), dim=-1).unsqueeze(1)
         return torch.fft.ifft(x_ft * self.psi_ft_bar.type_as(x), dim=-1)
 
 
