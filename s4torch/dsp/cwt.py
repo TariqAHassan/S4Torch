@@ -124,9 +124,12 @@ class Cwt(nn.Module):
         ).unsqueeze(0)
 
     @property
+    def n_scales(self) -> int:
+        return self._get_params()[-1] + 1
+
+    @property
     def output_shape(self) -> tuple[int, int]:
-        cols, rows = self._get_params()[-1] + 1, self.n0
-        return cols, rows
+        return self.n_scales, self.n0
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if _next_pow2(x.shape[-1]) != self.n0:
