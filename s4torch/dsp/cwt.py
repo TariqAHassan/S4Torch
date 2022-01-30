@@ -37,26 +37,10 @@ from __future__ import annotations
 
 import numpy as np
 import torch
-
 from pycwt.wavelet import _check_parameter_wavelet
-from math import log2, ceil
 from torch import nn
-from torch.nn import functional as F
 
-
-def _next_pow2(i: int) -> int:
-    return 2 ** ceil(log2(i))
-
-
-def _is_pow2(i: int) -> int:
-    return log2(i) % 1 == 0
-
-
-def pow2pad(x: torch.Tensor) -> torch.Tensor:
-    *_, t = x.shape
-    if _is_pow2(t):
-        return x
-    return F.pad(x, pad=(0, _next_pow2(t) - t))
+from s4torch.dsp.utils import is_pow2, next_pow2, pow2pad
 
 
 class Cwt(nn.Module):
@@ -71,7 +55,7 @@ class Cwt(nn.Module):
         freqs: np.ndarray | None = None,
     ) -> None:
         super().__init__()
-        if not _is_pow2(n0):
+        if not is_pow2(n0):
             raise ValueError(f"n0 is not a power of 2, got {n0}")
         self.n0 = n0
         self.dt = dt
@@ -132,7 +116,7 @@ class Cwt(nn.Module):
         return self.n_scales, self.n0
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if _next_pow2(x.shape[-1]) != self.n0:
+        if next_pow2(x.shape[-1]) != self.n0:
             raise IndexError(f"Next power of two greater than n0 ({self.n0})")
 
         x_ft = torch.fft.fft(pow2pad(x), dim=-1).unsqueeze(1)
@@ -149,7 +133,7 @@ if __name__ == "__main__":
     y, sr = librosa.load(librosa.util.example_audio_file(), sr=SR, duration=1)
     y = torch.from_numpy(y).unsqueeze(0)
 
-    transform = Cwt(_next_pow2(y.shape[-1]))
+    transform = Cwt(next_pow2(y.shape[-1]))
     X = transform(y)
 
     assert X.shape == (y.shape[0], *transform.output_shape)
