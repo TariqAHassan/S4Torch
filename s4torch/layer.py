@@ -10,10 +10,13 @@ from typing import Union
 import numpy as np
 import torch
 from torch import nn
-from torch import view_as_real as as_real
 from torch.fft import fft, ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
+
+
+def _as_real(x: torch.Tensor) -> torch.Tensor:
+    return torch.view_as_real(x) if x.is_complex() else x
 
 
 def _log_step_initializer(
@@ -27,7 +30,7 @@ def _log_step_initializer(
 
 def _make_ones(*shape: int, complex: bool = False) -> torch.Tensor:
     a = torch.ones(*shape)
-    return as_real(a + a.clone().mul(1j)) if complex else a
+    return _as_real(a + a.clone().mul(1j)) if complex else a
 
 
 def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
@@ -116,9 +119,9 @@ class S4Layer(nn.Module):
         self.complex = complex
 
         p, q, lambda_ = map(lambda t: t.type(torch.complex64), _make_p_q_lambda(n))
-        self._p = nn.Parameter(as_real(p))
-        self._q = nn.Parameter(as_real(q))
-        self._lambda_ = nn.Parameter(as_real(lambda_).unsqueeze(0).unsqueeze(1))
+        self._p = nn.Parameter(_as_real(p))
+        self._q = nn.Parameter(_as_real(q))
+        self._lambda_ = nn.Parameter(_as_real(lambda_).unsqueeze(0).unsqueeze(1))
 
         self.register_buffer(
             "omega_l",
@@ -133,14 +136,14 @@ class S4Layer(nn.Module):
         )
 
         self._B = nn.Parameter(
-            as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
+            _as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
         self._Ct = nn.Parameter(
-            as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
+            _as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
         self._D = nn.Parameter(_make_ones(1, 1, d_model, complex=complex))
         self._log_step = nn.Parameter(
-            as_real(
+            _as_real(
                 _log_step_initializer(torch.rand(d_model))
                 + _log_step_initializer(torch.rand(d_model)).mul(1j if complex else 0)
             )
@@ -171,11 +174,11 @@ class S4Layer(nn.Module):
 
     @property
     def D(self) -> torch.Tensor:
-        return torch.view_as_complex(self._D)
+        return torch.view_as_complex(self._D) if self.complex else self._D
 
     @property
     def log_step(self) -> torch.Tensor:
-        return torch.view_as_complex(self._log_step)
+        return torch.view_as_complex(self._log_step) if self.complex else self._log_step
 
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
