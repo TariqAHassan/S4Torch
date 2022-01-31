@@ -15,8 +15,8 @@ class ComplexDropout(nn.Module):
     def __init__(self, p: float = 0.5) -> None:
         super().__init__()
         self.p = p
-        if not 0 < p < 1:
-            raise ValueError(f"`p` expected to be on (0, 1), got {p}")
+        if not 0 <= p < 1:
+            raise ValueError(f"`p` expected to be on [0, 1), got {p}")
 
         self._binomial = torch.distributions.binomial.Binomial(probs=1 - self.p)
 
