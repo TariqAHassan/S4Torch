@@ -11,10 +11,10 @@ import torch
 from torch import nn
 
 from s4torch.aux.adapters import TemporalAdapter
+from s4torch.aux.complex import as_complex_layer
+from s4torch.aux.layers import ComplexDropout, ComplexLinear
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
-from s4torch.aux.complex import as_complex_layer
-from s4torch.aux.layers import ComplexLinear, ComplexDropout
 
 
 def _make_norm(d_model: int, norm_type: Optional[str], complex: bool) -> nn.Module:

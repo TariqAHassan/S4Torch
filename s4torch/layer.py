@@ -136,10 +136,14 @@ class S4Layer(nn.Module):
         )
 
         self._B = nn.Parameter(
-            _as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
+            _as_real(
+                init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
+            )
         )
         self._Ct = nn.Parameter(
-            _as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
+            _as_real(
+                init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
+            )
         )
         self._D = nn.Parameter(_make_ones(1, 1, d_model, complex=complex))
         self._log_step = nn.Parameter(
