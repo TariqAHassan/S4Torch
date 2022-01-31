@@ -52,7 +52,7 @@ class ComplexLayerNorm1d(nn.Module):
 
         if elementwise_affine:
             self.weight = nn.Parameter(
-                torch.ones(1, 1, normalized_shape, dtype=torch.complex64)
+                torch.ones(1, 1, normalized_shape, dtype=torch.complex64).add(1j)
             )
             self.bias = nn.Parameter(
                 torch.zeros(1, 1, normalized_shape, dtype=torch.complex64)
