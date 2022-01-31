@@ -18,7 +18,7 @@ def as_complex_layer(layer: nn.Module) -> nn.Module:
 
     This layer is implemented by applying the activation
     to the real and imaginary components independently
-    (i.e., against the Cartesian representation of the input).
+    (i.e., against the Cartesian form of the input).
 
     Args:
         layer (nn.Module): a layer intended for use with
