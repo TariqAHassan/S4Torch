@@ -29,8 +29,7 @@ def _log_step_initializer(
 
 
 def _make_ones(*shape: int, complex: bool = False) -> torch.Tensor:
-    a = torch.ones(*shape)
-    return _as_real(a + a.clone().mul(1j)) if complex else a
+    return _as_real(torch.ones(*shape).add(1j if complex else 0))
 
 
 def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
