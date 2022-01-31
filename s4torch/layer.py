@@ -154,7 +154,12 @@ class S4Layer(nn.Module):
         )
 
     def extra_repr(self) -> str:
-        return f"d_model={self.d_model}, n={self.n}, l_max={self.l_max}"
+        return (
+            f"d_model={self.d_model}, "
+            f"n={self.n}, "
+            f"l_max={self.l_max}, "
+            f"complex={self.complex}"
+        )
 
     @property
     def p(self) -> torch.Tensor:
