@@ -33,7 +33,7 @@ class ComplexDropout(nn.Module):
         return (mask + mask.mul(1j)).type_as(x)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.training:
+        if self.training and self.p:
             x = x * self._get_mask(x) * (1.0 / (1 - self.p))
         return x
 
