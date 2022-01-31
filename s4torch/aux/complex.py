@@ -16,6 +16,10 @@ def as_complex_layer(layer: nn.Module) -> nn.Module:
     complex-valued inputs from layers build for real-valued
     inputs.
 
+    This layer is implemented by applying the activation
+    to the real and imaginary components independently
+    (i.e., against the Cartesian representation of the input).
+
     Args:
         layer (nn.Module): a layer intended for use with
             real-valued inputs
