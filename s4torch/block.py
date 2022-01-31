@@ -13,17 +13,20 @@ from torch import nn
 from s4torch.aux.adapters import TemporalAdapter
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
+from s4torch.aux.complex import as_complex_layer
+from s4torch.aux.layers import ComplexLinear, ComplexDropout
 
 
-def _make_norm(d_model: int, norm_type: Optional[str]) -> nn.Module:
+def _make_norm(d_model: int, norm_type: Optional[str], complex: bool) -> nn.Module:
     if norm_type is None:
-        return nn.Identity()
+        norm = nn.Identity()
     elif norm_type == "layer":
-        return nn.LayerNorm(d_model)
+        norm = nn.LayerNorm(d_model)
     elif norm_type == "batch":
-        return TemporalAdapter(nn.BatchNorm1d(d_model))
+        norm = TemporalAdapter(nn.BatchNorm1d(d_model))
     else:
         raise ValueError(f"Unsupported norm type '{norm_type}'")
+    return as_complex_layer(norm) if complex else norm
 
 
 class S4Block(nn.Module):
@@ -47,6 +50,8 @@ class S4Block(nn.Module):
             Options: ``batch``, ``layer``, ``None``.
         pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
             following each ``S4Block()``.
+        complex (bool): if ``True`` expect the input signal to be
+            complex-valued.
 
     """
 
@@ -60,6 +65,7 @@ class S4Block(nn.Module):
         norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
         pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
+        complex: bool = False,
     ) -> None:
         super().__init__()
         self.d_model = d_model
@@ -70,28 +76,29 @@ class S4Block(nn.Module):
         self.norm_type = norm_type
         self.norm_strategy = norm_strategy
         self.pooling = pooling
+        self.complex = complex
 
         if norm_strategy not in ("pre", "post", "both"):
             raise ValueError(f"Unexpected norm_strategy, got '{norm_strategy}'")
 
         self.pipeline = SequentialWithResidual(
             (
-                _make_norm(d_model, norm_type=norm_type)
+                _make_norm(d_model, norm_type=norm_type, complex=complex)
                 if norm_strategy in ("pre", "both")
                 else nn.Identity()
             ),
-            S4Layer(d_model, n=n, l_max=l_max),
-            activation(),
-            nn.Dropout(p_dropout),
-            nn.Linear(d_model, d_model, bias=True),
+            S4Layer(d_model, n=n, l_max=l_max, complex=complex),
+            (as_complex_layer if complex else nn.Identity())(activation()),
+            (ComplexDropout if complex else nn.Dropout)(p_dropout),
+            (ComplexLinear if complex else nn.Linear)(d_model, d_model, bias=True),
             Residual(),
             (
-                _make_norm(d_model, norm_type=norm_type)
+                _make_norm(d_model, norm_type=norm_type, complex=complex)
                 if norm_strategy in ("post", "both")
                 else nn.Identity()
             ),
             TemporalAdapter(pooling) if pooling else nn.Identity(),
-            nn.Dropout(p_dropout),
+            (ComplexDropout if complex else nn.Dropout)(p_dropout),
         )
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
@@ -116,9 +123,9 @@ if __name__ == "__main__":
     d_output = 128
     l_max = 784
 
-    u = torch.randn(1, l_max, d_model)
+    u = torch.randn(1, l_max, d_model, dtype=torch.complex64)
 
-    s4block = S4Block(d_model, n=N, l_max=l_max, norm_type="batch")
+    s4block = S4Block(d_model, n=N, l_max=l_max, complex=u.is_complex())
     print(f"S4Block Params: {count_parameters(s4block):,}")
 
     assert s4block(u).shape == u.shape
