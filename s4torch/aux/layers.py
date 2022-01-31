@@ -5,10 +5,15 @@
     References:
         * https://stackoverflow.com/a/54170758
 
+    ToDo: implement complex-valued batch norm
+
 """
+from __future__ import annotations
+
 import torch
 from torch import nn
 from torch.nn import functional as F
+from torch.nn import init
 
 
 class ComplexDropout(nn.Module):
@@ -31,6 +36,40 @@ class ComplexDropout(nn.Module):
         if self.training:
             x = x * self._get_mask(x) * (1.0 / (1 - self.p))
         return x
+
+
+class ComplexLayerNorm1d(nn.Module):
+    def __init__(
+        self,
+        normalized_shape: int,
+        eps: complex = 1e-05 + 1e-05j,
+        elementwise_affine: bool = True,
+    ) -> None:
+        super().__init__()
+        self.normalized_shape = normalized_shape
+        self.eps = eps
+        self.elementwise_affine = elementwise_affine
+
+        if elementwise_affine:
+            self.weight = torch.ones(1, 1, normalized_shape, dtype=torch.complex64)
+            self.bias = torch.zeros(1, 1, normalized_shape, dtype=torch.complex64)
+        else:
+            self.weight, self.bias = None, None
+
+    def extra_repr(self) -> str:
+        return (
+            f"normalized_shape={self.normalized_shape}, "
+            f"eps={self.eps}, "
+            f"elementwise_affine={self.elementwise_affine}"
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
+        num = x - x.mean(dim=-1, keepdim=True)
+        denom = (x.var(dim=-1, keepdim=True) + self.eps).sqrt()
+        out = num / denom
+        if self.elementwise_affine:
+            out = out * self.weight + self.bias
+        return out
 
 
 class ComplexLinear(nn.Module):
@@ -66,10 +105,11 @@ class ComplexLinear(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.randn(2, 512, dtype=torch.complex64)
+    x = torch.randn(2, 100, 512, dtype=torch.complex64)
 
     for layer in (
         ComplexDropout(0.1),
+        ComplexLayerNorm1d(x.shape[-1]),
         ComplexLinear(
             in_features=x.shape[-1],
             out_features=x.shape[-1],
