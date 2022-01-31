@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch import view_as_real as as_real
-from torch.fft import ifft, irfft, rfft, fft
+from torch.fft import fft, ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
 
