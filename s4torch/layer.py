@@ -213,7 +213,7 @@ class S4Layer(nn.Module):
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
         k10 = _cauchy_dot(a1 * b0, denominator=cauchy_dot_denominator)
         k11 = _cauchy_dot(a1 * b1, denominator=cauchy_dot_denominator)
-        return c * (k00 - k01 * (1.0 / (1.0 + k11)) * k10)
+        return c * (k00 - k01 * ((1.0 + 1.0j) / ((1.0 + 1.0j) + k11)) * k10)
 
     @property
     def K(self) -> torch.Tensor:  # noqa
@@ -249,5 +249,6 @@ if __name__ == "__main__":
 
     s4layer = S4Layer(d_model, n=N, l_max=l_max, complex_sig=u.is_complex())
     print(f"S4Layer Params: {count_parameters(s4layer):,}")
+    self = s4layer
 
     assert s4layer(u).shape == u.shape
