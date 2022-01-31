@@ -12,7 +12,7 @@ from torch import nn
 
 from s4torch.aux.adapters import TemporalAdapter
 from s4torch.aux.complex import as_complex_layer
-from s4torch.aux.layers import ComplexDropout, ComplexLinear
+from s4torch.aux.layers import ComplexDropout, ComplexLayerNorm1d, ComplexLinear
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
 
@@ -21,8 +21,7 @@ def _make_norm(d_model: int, norm_type: Optional[str], complex: bool) -> nn.Modu
     if norm_type is None:
         return nn.Identity()
     elif norm_type == "layer":
-        norm = nn.LayerNorm(d_model)
-        return as_complex_layer(norm) if complex else norm
+        return ComplexLayerNorm1d(d_model)
     elif norm_type == "batch":
         norm = nn.BatchNorm1d(d_model)
         return TemporalAdapter(as_complex_layer(norm) if complex else norm)
