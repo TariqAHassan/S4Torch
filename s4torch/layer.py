@@ -139,9 +139,12 @@ class S4Layer(nn.Module):
             as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
         self._D = nn.Parameter(_make_ones(1, 1, d_model, complex=complex))
-
-        # ToDo: make complex.
-        self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
+        self._log_step = nn.Parameter(
+            as_real(
+                _log_step_initializer(torch.rand(d_model))
+                + _log_step_initializer(torch.rand(d_model)).mul(1j)
+            )
+        )
 
     def extra_repr(self) -> str:
         return f"d_model={self.d_model}, n={self.n}, l_max={self.l_max}"
@@ -169,6 +172,10 @@ class S4Layer(nn.Module):
     @property
     def D(self) -> torch.Tensor:
         return torch.view_as_complex(self._D)
+
+    @property
+    def log_step(self) -> torch.Tensor:
+        return torch.view_as_complex(self._log_step)
 
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
