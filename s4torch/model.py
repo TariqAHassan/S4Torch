@@ -10,7 +10,7 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch._decoders import StandardDecoder
+from s4torch._decoders import ComplexDecoder, StandardDecoder
 from s4torch._encoders import StandardEncoder, WaveletEncoder
 from s4torch.block import S4Block
 from s4torch.dsp.cwt import Cwt
@@ -75,6 +75,8 @@ class S4Model(nn.Module):
             Options: ``batch``, ``layer``, ``None``.
         pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
             following each ``S4Block()``.
+        complex_sig (bool, optional): if ``True`` expect the input signal to be
+            complex-valued. If ``None``, determine using ``wavelet_tform``
 
     """
 
@@ -93,6 +95,7 @@ class S4Model(nn.Module):
         norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
         pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
+        complex_sig: Optional[bool] = None,
     ) -> None:
         super().__init__()
         self.d_input = d_input
@@ -107,6 +110,7 @@ class S4Model(nn.Module):
         self.norm_strategy = norm_strategy
         self.norm_type = norm_type
         self.pooling = pooling
+        self.complex_sig = wavelet_tform if complex_sig is None else complex_sig
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
             n_blocks=n_blocks,
@@ -119,10 +123,11 @@ class S4Model(nn.Module):
                 Cwt(next_pow2(self.l_max)),
                 d_model=self.d_model,
             )
+            self.decoder = ComplexDecoder(self.d_model, self.d_output)
         else:
-            self.encoder = StandardEncoder(self.d_input, d_model=self.d_model)
+            self.encoder = StandardEncoder(self.d_input, self.d_model)
+            self.decoder = StandardDecoder(self.d_model, self.d_output)
 
-        self.decoder = StandardDecoder(self.d_model, self.d_output)
         self.blocks = nn.ModuleList(
             [
                 S4Block(
@@ -134,6 +139,7 @@ class S4Model(nn.Module):
                     norm_strategy=norm_strategy,
                     norm_type=norm_type,
                     pooling=pooling if pooling and pool_ok else None,
+                    complex_sig=self.complex_sig,
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
             ]
