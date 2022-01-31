@@ -81,6 +81,10 @@ class S4Block(nn.Module):
 
         if norm_strategy not in ("pre", "post", "both"):
             raise ValueError(f"Unexpected norm_strategy, got '{norm_strategy}'")
+        elif complex and isinstance(pooling, nn.MaxPool1d):
+            # ToDo: this is not hard to implement. It's simply a matter of
+            #  computing the magnitude of each number and selecting the largest.
+            raise ValueError("Max pooling not supported for complex-valued input")
 
         self.pipeline = SequentialWithResidual(
             (
