@@ -219,6 +219,8 @@ class S4Layer(nn.Module):
 
 
 if __name__ == "__main__":
+    from experiments.utils import count_parameters
+
     N = 32
     d_model = 128
     l_max = 784
@@ -226,4 +228,6 @@ if __name__ == "__main__":
     u = torch.randn(1, l_max, d_model, dtype=torch.complex64)
 
     s4layer = S4Layer(d_model, n=N, l_max=l_max, complex=u.is_complex())
+    print(f"S4Layer Params: {count_parameters(s4layer):,}")
+
     assert s4layer(u).shape == u.shape
