@@ -84,7 +84,7 @@ class S4Block(nn.Module):
         elif complex and isinstance(pooling, nn.MaxPool1d):
             # ToDo: this is not hard to implement. It's simply a matter of
             #  computing the magnitude of each number and selecting the largest.
-            raise ValueError("Max pooling not supported for complex-valued input")
+            raise ValueError("Max pooling not supported for complex-valued inputs")
 
         self.pipeline = SequentialWithResidual(
             (
