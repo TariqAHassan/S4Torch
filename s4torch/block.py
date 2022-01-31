@@ -21,7 +21,7 @@ def _make_norm(d_model: int, norm_type: Optional[str], complex: bool) -> nn.Modu
     if norm_type is None:
         return nn.Identity()
     elif norm_type == "layer":
-        return ComplexLayerNorm1d(d_model)
+        return (ComplexLayerNorm1d if complex else nn.LayerNorm)(d_model)
     elif norm_type == "batch":
         norm = nn.BatchNorm1d(d_model)
         return TemporalAdapter(as_complex_layer(norm) if complex else norm)
