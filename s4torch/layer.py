@@ -142,7 +142,7 @@ class S4Layer(nn.Module):
         self._log_step = nn.Parameter(
             as_real(
                 _log_step_initializer(torch.rand(d_model))
-                + _log_step_initializer(torch.rand(d_model)).mul(1j)
+                + _log_step_initializer(torch.rand(d_model)).mul(1j if complex else 0)
             )
         )
 
