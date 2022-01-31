@@ -32,11 +32,11 @@ def as_complex_layer(layer: nn.Module) -> nn.Module:
     class ComplexWrapper(nn.Module):
         def __init__(self) -> None:
             super().__init__()
-            self.real_layer = deepcopy(layer)
-            self.imag_layer = deepcopy(layer)
+            self.re_layer = deepcopy(layer)
+            self.im_layer = deepcopy(layer)
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            return self.real_layer(x.real) + self.imag_layer(x.imag).mul(1j)
+            return (self.re_layer(x.real) + self.im_layer(x.imag).mul(1j)).type_as(x)
 
     return ComplexWrapper()
 
