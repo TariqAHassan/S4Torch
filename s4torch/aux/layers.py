@@ -37,7 +37,7 @@ class ComplexLinear(nn.Module):
         self.out_features = out_features
         self.bias = bias
 
-        # Use the initialization techniques for nn.Linear()
+        # Use the initialization techniques from `nn.Linear()`
         real = nn.Linear(in_features, out_features, bias=bias)
         imag = nn.Linear(in_features, out_features, bias=bias)
 
