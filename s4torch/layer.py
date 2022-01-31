@@ -2,6 +2,8 @@
 
     S4 Layer
 
+    ToDo: reinstate support for AMP
+
 """
 from typing import Union
 
@@ -9,7 +11,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch import view_as_real as as_real
-from torch.fft import ifft, irfft, rfft
+from torch.fft import ifft, irfft, rfft, fft
 from torch.nn import functional as F
 from torch.nn import init
 
@@ -21,6 +23,11 @@ def _log_step_initializer(
 ) -> torch.Tensor:
     scale = np.log(dt_max) - np.log(dt_min)
     return tensor * scale + np.log(dt_min)
+
+
+def _make_ones(*shape: int, complex: bool = False) -> torch.Tensor:
+    a = torch.ones(*shape)
+    return as_real(a + a.clone().mul(1j)) if complex else a
 
 
 def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
@@ -72,11 +79,12 @@ def _cauchy_dot(v: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
     return (v / denominator).sum(dim=-1)
 
 
-def _non_circular_convolution(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
-    l_max = u.shape[1]
-    ud = rfft(F.pad(u.float(), pad=(0, 0, 0, l_max, 0, 0)), dim=1)
-    Kd = rfft(F.pad(K.float(), pad=(0, l_max)), dim=-1)
-    return irfft(ud.transpose(-2, -1) * Kd)[..., :l_max].transpose(-2, -1).type_as(u)
+def _non_circular_conv(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
+    l_max, complex = u.shape[1], u.is_complex()
+    ud = (fft if complex else rfft)(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = (fft if complex else rfft)(F.pad(K, pad=(0, l_max)), dim=-1)
+    out = (ifft if complex else irfft)(ud.transpose(-2, -1) * Kd)[..., :l_max]
+    return out.transpose(-2, -1).type_as(u)
 
 
 class S4Layer(nn.Module):
@@ -88,6 +96,8 @@ class S4Layer(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
+        complex (bool): if ``True`` expect the input signal to be
+            complex-valued.
 
     Attributes:
         omega_l (torch.Tensor): omega buffer (of length ``l_max``) used to obtain ``K``.
@@ -98,11 +108,12 @@ class S4Layer(nn.Module):
     omega_l: torch.Tensor
     ifft_order: torch.Tensor
 
-    def __init__(self, d_model: int, n: int, l_max: int) -> None:
+    def __init__(self, d_model: int, n: int, l_max: int, complex: bool = False) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
+        self.complex = complex
 
         p, q, lambda_ = map(lambda t: t.type(torch.complex64), _make_p_q_lambda(n))
         self._p = nn.Parameter(as_real(p))
@@ -127,7 +138,9 @@ class S4Layer(nn.Module):
         self._Ct = nn.Parameter(
             as_real(init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64)))
         )
-        self.D = nn.Parameter(torch.ones(1, 1, d_model))
+        self._D = nn.Parameter(_make_ones(1, 1, d_model, complex=complex))
+
+        # ToDo: make complex.
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
     def extra_repr(self) -> str:
@@ -153,6 +166,10 @@ class S4Layer(nn.Module):
     def Ct(self) -> torch.Tensor:
         return torch.view_as_complex(self._Ct)
 
+    @property
+    def D(self) -> torch.Tensor:
+        return torch.view_as_complex(self._D)
+
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
         b0, b1 = self.B, self.p
@@ -173,7 +190,9 @@ class S4Layer(nn.Module):
         """K convolutional filter."""
         at_roots = self._compute_roots()
         out = ifft(at_roots, n=self.l_max, dim=-1)
-        conv = torch.stack([i[self.ifft_order] for i in out]).real
+        conv = torch.stack([i[self.ifft_order] for i in out])
+        if not self.complex:
+            conv = conv.real
         return conv.unsqueeze(0)
 
     def forward(self, u: torch.Tensor) -> torch.Tensor:
@@ -186,7 +205,7 @@ class S4Layer(nn.Module):
             y (torch.Tensor): a tensor of the form ``[BATCH, SEQ_LEN, D_OUTPUT]``
 
         """
-        return _non_circular_convolution(u, K=self.K) + (self.D * u)
+        return _non_circular_conv(u, K=self.K) + (self.D * u)
 
 
 if __name__ == "__main__":
@@ -194,7 +213,7 @@ if __name__ == "__main__":
     d_model = 128
     l_max = 784
 
-    u = torch.randn(1, l_max, d_model)
+    u = torch.randn(1, l_max, d_model, dtype=torch.complex64)
 
-    s4layer = S4Layer(d_model, n=N, l_max=l_max)
+    s4layer = S4Layer(d_model, n=N, l_max=l_max, complex=u.is_complex())
     assert s4layer(u).shape == u.shape
