@@ -109,7 +109,9 @@ class ComplexLinear(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.randn(2, 100, 512, dtype=torch.complex64)
+    from torch.nn import functional as F
+
+    x = torch.randn(2, 512, 100, dtype=torch.complex64)
 
     for layer in (
         ComplexDropout(0.1),
@@ -121,3 +123,11 @@ if __name__ == "__main__":
         ),
     ):
         assert layer(x).shape == x.shape
+
+    actual_ln = ComplexLayerNorm1d(
+        x.shape[-1],
+        eps=1e-5,  # noqa
+        elementwise_affine=False,
+    )(x.real)
+    expected_ln = nn.LayerNorm(x.shape[-1], elementwise_affine=False)(x.real)
+    assert F.mse_loss(actual_ln, expected_ln).item() < 1e-5
