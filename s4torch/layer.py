@@ -5,6 +5,7 @@
     ToDo: reinstate support for AMP
 
 """
+from __future__ import annotations
 from typing import Union
 
 import numpy as np
@@ -13,8 +14,6 @@ from torch import nn
 from torch.fft import fft, ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
-
-_COMPLEX_1 = 1.0 + 1.0j
 
 
 def _as_real(x: torch.Tensor) -> torch.Tensor:
@@ -202,6 +201,10 @@ class S4Layer(nn.Module):
             else self._log_step
         )
 
+    @property
+    def _one(self) -> float | complex:
+        return 1.0 + 1.0j if self.complex_sig else 1.0
+
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
         b0, b1 = self.B, self.p
@@ -215,7 +218,7 @@ class S4Layer(nn.Module):
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
         k10 = _cauchy_dot(a1 * b0, denominator=cauchy_dot_denominator)
         k11 = _cauchy_dot(a1 * b1, denominator=cauchy_dot_denominator)
-        return c * (k00 - k01 * (_COMPLEX_1 / (_COMPLEX_1 + k11)) * k10)
+        return c * (k00 - k01 * (self._one / (self._one + k11)) * k10)
 
     @property
     def K(self) -> torch.Tensor:  # noqa
