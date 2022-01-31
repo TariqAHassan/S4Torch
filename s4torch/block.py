@@ -98,7 +98,11 @@ class S4Block(nn.Module):
                 if norm_strategy in ("post", "both")
                 else nn.Identity()
             ),
-            TemporalAdapter(pooling) if pooling else nn.Identity(),
+            (
+                TemporalAdapter(as_complex_layer(pooling) if complex else pooling)
+                if pooling
+                else nn.Identity()
+            ),
             (ComplexDropout if complex else nn.Dropout)(p_dropout),
         )
 
