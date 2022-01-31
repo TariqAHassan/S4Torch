@@ -20,6 +20,9 @@ class ComplexDropout(nn.Module):
 
         self._binomial = torch.distributions.binomial.Binomial(probs=1 - self.p)
 
+    def extra_repr(self) -> str:
+        return f"p={self.p}"
+
     def _get_mask(self, x: torch.Tensor) -> torch.Tensor:
         mask = self._binomial.sample(x.shape)
         return (mask + mask.mul(1j)).type_as(x)
@@ -46,6 +49,13 @@ class ComplexLinear(nn.Module):
             self.bias_tensor = nn.Parameter(real.bias + imag.bias.mul(1j))
         else:
             self.bias_tensor = None
+
+    def extra_repr(self) -> str:
+        return (
+            f"in_features={self.in_features}, "
+            f"out_features={self.out_features}, "
+            f"bias={self.bias}"
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return F.linear(
