@@ -19,14 +19,15 @@ from s4torch.aux.layers import ComplexLinear, ComplexDropout
 
 def _make_norm(d_model: int, norm_type: Optional[str], complex: bool) -> nn.Module:
     if norm_type is None:
-        norm = nn.Identity()
+        return nn.Identity()
     elif norm_type == "layer":
         norm = nn.LayerNorm(d_model)
+        return as_complex_layer(norm) if complex else norm
     elif norm_type == "batch":
-        norm = TemporalAdapter(nn.BatchNorm1d(d_model))
+        norm = nn.BatchNorm1d(d_model)
+        return TemporalAdapter(as_complex_layer(norm) if complex else norm)
     else:
         raise ValueError(f"Unsupported norm type '{norm_type}'")
-    return as_complex_layer(norm) if complex else norm
 
 
 class S4Block(nn.Module):
