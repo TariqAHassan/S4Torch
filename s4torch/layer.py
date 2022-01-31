@@ -28,8 +28,8 @@ def _log_step_initializer(
     return tensor * scale + np.log(dt_min)
 
 
-def _make_ones(*shape: int, complex: bool = False) -> torch.Tensor:
-    return _as_real(torch.ones(*shape).add(1j if complex else 0))
+def _make_ones(*shape: int, complex_sig: bool = False) -> torch.Tensor:
+    return _as_real(torch.ones(*shape).add(1j if complex_sig else 0))
 
 
 def _make_omega_l(l_max: int, dtype: torch.dtype = torch.complex64) -> torch.Tensor:
@@ -82,10 +82,10 @@ def _cauchy_dot(v: torch.Tensor, denominator: torch.Tensor) -> torch.Tensor:
 
 
 def _non_circular_conv(u: torch.Tensor, K: torch.Tensor) -> torch.Tensor:
-    l_max, complex = u.shape[1], u.is_complex()
-    ud = (fft if complex else rfft)(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
-    Kd = (fft if complex else rfft)(F.pad(K, pad=(0, l_max)), dim=-1)
-    out = (ifft if complex else irfft)(ud.transpose(-2, -1) * Kd)[..., :l_max]
+    l_max, complex_sig = u.shape[1], u.is_complex()
+    ud = (fft if complex_sig else rfft)(F.pad(u, pad=(0, 0, 0, l_max, 0, 0)), dim=1)
+    Kd = (fft if complex_sig else rfft)(F.pad(K, pad=(0, l_max)), dim=-1)
+    out = (ifft if complex_sig else irfft)(ud.transpose(-2, -1) * Kd)[..., :l_max]
     return out.transpose(-2, -1).type_as(u)
 
 
@@ -98,7 +98,7 @@ class S4Layer(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        complex (bool): if ``True`` expect the input signal to be
+        complex_sig (bool): if ``True`` expect the input signal to be
             complex-valued.
 
     Attributes:
@@ -110,12 +110,18 @@ class S4Layer(nn.Module):
     omega_l: torch.Tensor
     ifft_order: torch.Tensor
 
-    def __init__(self, d_model: int, n: int, l_max: int, complex: bool = False) -> None:
+    def __init__(
+        self,
+        d_model: int,
+        n: int,
+        l_max: int,
+        complex_sig: bool = False,
+    ) -> None:
         super().__init__()
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
-        self.complex = complex
+        self.complex_sig = complex_sig
 
         p, q, lambda_ = map(lambda t: t.type(torch.complex64), _make_p_q_lambda(n))
         self._p = nn.Parameter(_as_real(p))
@@ -144,11 +150,13 @@ class S4Layer(nn.Module):
                 init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
             )
         )
-        self._D = nn.Parameter(_make_ones(1, 1, d_model, complex=complex))
+        self._D = nn.Parameter(_make_ones(1, 1, d_model, complex_sig=complex_sig))
         self._log_step = nn.Parameter(
             _as_real(
                 _log_step_initializer(torch.rand(d_model))
-                + _log_step_initializer(torch.rand(d_model)).mul(1j if complex else 0)
+                + _log_step_initializer(torch.rand(d_model)).mul(
+                    1j if complex_sig else 0
+                )
             )
         )
 
@@ -157,7 +165,7 @@ class S4Layer(nn.Module):
             f"d_model={self.d_model}, "
             f"n={self.n}, "
             f"l_max={self.l_max}, "
-            f"complex={self.complex}"
+            f"complex_sig={self.complex_sig}"
         )
 
     @property
@@ -182,11 +190,15 @@ class S4Layer(nn.Module):
 
     @property
     def D(self) -> torch.Tensor:
-        return torch.view_as_complex(self._D) if self.complex else self._D
+        return torch.view_as_complex(self._D) if self.complex_sig else self._D
 
     @property
     def log_step(self) -> torch.Tensor:
-        return torch.view_as_complex(self._log_step) if self.complex else self._log_step
+        return (
+            torch.view_as_complex(self._log_step)
+            if self.complex_sig
+            else self._log_step
+        )
 
     def _compute_roots(self) -> torch.Tensor:
         a0, a1 = self.Ct.conj(), self.q.conj()
@@ -209,7 +221,7 @@ class S4Layer(nn.Module):
         at_roots = self._compute_roots()
         out = ifft(at_roots, n=self.l_max, dim=-1)
         conv = torch.stack([i[self.ifft_order] for i in out])
-        if not self.complex:
+        if not self.complex_sig:
             conv = conv.real
         return conv.unsqueeze(0)
 
@@ -235,7 +247,7 @@ if __name__ == "__main__":
 
     u = torch.randn(1, l_max, d_model, dtype=torch.complex64)
 
-    s4layer = S4Layer(d_model, n=N, l_max=l_max, complex=u.is_complex())
+    s4layer = S4Layer(d_model, n=N, l_max=l_max, complex_sig=u.is_complex())
     print(f"S4Layer Params: {count_parameters(s4layer):,}")
 
     assert s4layer(u).shape == u.shape
