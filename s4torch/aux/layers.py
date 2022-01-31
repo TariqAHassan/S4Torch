@@ -77,7 +77,7 @@ class ComplexLayerNorm1d(nn.Module):
 
 
 class ComplexLinear(nn.Module):
-    def __init__(self, in_features: int, out_features: int, bias: bool) -> None:
+    def __init__(self, in_features: int, out_features: int, bias: bool = True) -> None:
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
