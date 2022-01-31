@@ -14,6 +14,8 @@ from torch.fft import fft, ifft, irfft, rfft
 from torch.nn import functional as F
 from torch.nn import init
 
+_COMPLEX_1 = 1.0 + 1.0j
+
 
 def _as_real(x: torch.Tensor) -> torch.Tensor:
     return torch.view_as_real(x) if x.is_complex() else x
@@ -213,7 +215,7 @@ class S4Layer(nn.Module):
         k01 = _cauchy_dot(a0 * b1, denominator=cauchy_dot_denominator)
         k10 = _cauchy_dot(a1 * b0, denominator=cauchy_dot_denominator)
         k11 = _cauchy_dot(a1 * b1, denominator=cauchy_dot_denominator)
-        return c * (k00 - k01 * ((1.0 + 1.0j) / ((1.0 + 1.0j) + k11)) * k10)
+        return c * (k00 - k01 * (_COMPLEX_1 / (_COMPLEX_1 + k11)) * k10)
 
     @property
     def K(self) -> torch.Tensor:  # noqa
