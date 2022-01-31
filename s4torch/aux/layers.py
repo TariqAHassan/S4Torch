@@ -69,7 +69,7 @@ class ComplexLayerNorm1d(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
         num = x - x.mean(dim=-1, keepdim=True)
-        denom = (x.var(dim=-1, keepdim=True) + self.eps).sqrt()
+        denom = x.var(dim=-1, keepdim=True).add(self.eps).sqrt()
         out = num / denom
         if self.elementwise_affine:
             out = out * self.weight + self.bias
