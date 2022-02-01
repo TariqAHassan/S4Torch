@@ -18,5 +18,5 @@ class StandardDecoder(nn.Linear):
 
 class ComplexDecoder(ComplexLinear):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # ToDo: explore using use output.real / output.real to get sign information
+        # ToDo: explore using use output.real, which conserves sign information
         return super().forward(x).abs()
