@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import torch
 from torch import nn
-from torch.nn import functional as F
-from torch.nn import init
 from typing import Optional
 
 
@@ -37,6 +35,103 @@ class ComplexDropout(nn.Module):
         if self.training and self.p:
             x = x * self._get_mask(x) * (1.0 / (1 - self.p))
         return x
+
+
+class ComplexBatchNorm1d(nn.Module):
+    weight: Optional[torch.Tensor]
+    bias: Optional[torch.Tensor]
+
+    running_mean: Optional[torch.Tensor]
+    running_var: Optional[torch.Tensor]
+    num_batches_tracked: Optional[torch.Tensor]
+
+    def __init__(
+        self,
+        num_features: int,
+        eps: complex = 1e-05 + 1e-05j,
+        momentum: Optional[float] = 0.1,
+        affine: bool = True,
+        track_running_stats: bool = True,
+    ) -> None:
+        super().__init__()
+        self.num_features = num_features
+        self.eps = eps
+        self.momentum = momentum
+        self.affine = affine
+        self.track_running_stats = track_running_stats
+
+        if affine:
+            self.weight = nn.Parameter(
+                torch.ones(1, num_features, 1, dtype=torch.complex64).add(1j)
+            )
+            self.bias = nn.Parameter(
+                torch.zeros(1, num_features, 1, dtype=torch.complex64)
+            )
+        else:
+            self.register_parameter("weight", None)
+            self.register_parameter("bias", None)
+
+        if track_running_stats:
+            self.register_buffer(
+                "running_mean",
+                torch.zeros(1, num_features, 1, dtype=torch.complex64),
+            )
+            self.register_buffer(
+                "running_var",
+                torch.ones(1, num_features, 1, dtype=torch.complex64).add(1j),
+            )
+            self.register_buffer(
+                "num_batches_tracked",
+                torch.tensor(0, dtype=torch.long),
+            )
+        else:
+            self.register_buffer("running_mean", None)
+            self.register_buffer("running_var", None)
+            self.register_buffer("num_batches_tracked", None)
+
+    def extra_repr(self) -> str:
+        return (
+            f"num_features={self.num_features}, "
+            f"eps={self.eps}, "
+            f"momentum={self.momentum}, "
+            f"affine={self.affine}, "
+            f"track_running_stats={self.track_running_stats}"
+        )
+
+    @property
+    def _exp_avg_factor(self) -> float:
+        return (
+            1.0 / float(self.num_batches_tracked)
+            if self.momentum is None
+            else self.momentum
+        )
+
+    def _apply_momentum(
+        self,
+        new: torch.Tensor,
+        old: Optional[torch.Tensor],
+    ) -> torch.Tensor:
+        if old is None:
+            return self._exp_avg_factor * new
+        return ((1 - self._exp_avg_factor) * old) + (self._exp_avg_factor * new)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
+        mean = x.mean(dim=(0, 1, 2), keepdim=True)
+        var = x.var(dim=(0, 1, 2), keepdim=True, unbiased=False).add(self.eps).sqrt()
+
+        if self.track_running_stats:
+            if self.training:
+                self.num_batches_tracked += 1
+                self.running_mean = self._apply_momentum(mean, old=self.running_mean)
+                self.running_var = self._apply_momentum(var, old=self.running_var)
+                mean, var = self.running_mean, self.running_var
+            elif self.num_batches_tracked.item() > 0:
+                mean, var = self.running_mean, self.running_var
+
+        out = (x - mean) / var
+        if self.affine:
+            out = out * self.weight + self.bias
+        return out
 
 
 class ComplexLayerNorm1d(nn.Module):
@@ -129,6 +224,7 @@ if __name__ == "__main__":
     ):
         assert layer(x).shape == x.shape
 
+    # LayerNorm
     actual_ln = ComplexLayerNorm1d(
         x.shape[-1],
         eps=1e-5,  # noqa
@@ -136,3 +232,27 @@ if __name__ == "__main__":
     )(x.real)
     expected_ln = nn.LayerNorm(x.shape[-1], elementwise_affine=False)(x.real)
     assert F.mse_loss(actual_ln, expected_ln).item() < 1e-5
+
+    # BatchNorm
+    x0 = torch.ones_like(x.real)
+    x1 = torch.ones_like(x.real).mul(10)
+
+    sbnorm = nn.BatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
+    cbnorm = ComplexBatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
+    self = cbnorm
+
+    sbnorm(x0)
+    sbnorm(x1)
+    cbnorm(x0)
+    cbnorm(x1)
+
+    assert (
+        torch.isclose(cbnorm.running_var.real[0, :, 0], sbnorm.running_var, atol=1e-3)
+        .all()
+        .item()
+    )
+    assert (
+        torch.isclose(cbnorm.running_mean.real[0, :, 0], sbnorm.running_mean)
+        .all()
+        .item()
+    )
