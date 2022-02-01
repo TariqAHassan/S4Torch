@@ -5,8 +5,6 @@
     References:
         * https://stackoverflow.com/a/54170758
 
-    ToDo: implement complex-valued batch norm
-
 """
 from __future__ import annotations
 
