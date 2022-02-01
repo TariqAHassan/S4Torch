@@ -10,9 +10,10 @@
 """
 from __future__ import annotations
 
+from typing import Optional
+
 import torch
 from torch import nn
-from typing import Optional
 from torch.nn.functional import _verify_batch_size as verify_batch_size
 
 
@@ -119,9 +120,9 @@ class ComplexBatchNorm1d(nn.Module):
             self.running_var = factor * new
         else:
             n = input_shape.numel() / input_shape[1]
-            self.running_var = (
-                (factor * new * n / (n - 1)) + (1 - factor) * self.running_var
-            )
+            self.running_var = (factor * new * n / (n - 1)) + (
+                1 - factor
+            ) * self.running_var
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
         if self.training:
