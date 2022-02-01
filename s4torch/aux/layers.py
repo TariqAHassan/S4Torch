@@ -13,6 +13,7 @@ from __future__ import annotations
 import torch
 from torch import nn
 from typing import Optional
+from torch.nn.functional import _verify_batch_size as verify_batch_size
 
 
 class ComplexDropout(nn.Module):
@@ -98,32 +99,41 @@ class ComplexBatchNorm1d(nn.Module):
             f"track_running_stats={self.track_running_stats}"
         )
 
-    @property
-    def _exp_avg_factor(self) -> complex:
+    def _get_exp_avg_factor(self) -> complex:
         if self.momentum is None:
             factor = 1.0 / float(self.num_batches_tracked)
             return factor + (factor * 1j)
         else:
             return self.momentum
 
-    def _apply_momentum(
-        self,
-        new: torch.Tensor,
-        old: Optional[torch.Tensor],
-    ) -> torch.Tensor:
-        if old is None:
-            return self._exp_avg_factor * new
-        return ((1 - self._exp_avg_factor) * old) + (self._exp_avg_factor * new)
+    def _update_running_mean(self, new: torch.Tensor) -> None:
+        factor = self._get_exp_avg_factor()
+        if self.running_mean is None:
+            self.running_mean = factor * new
+        else:
+            self.running_mean = ((1 - factor) * self.running_mean) + (factor * new)
+
+    def _update_running_var(self, new: torch.Tensor, input_shape: torch.Size) -> None:
+        factor = self._get_exp_avg_factor()
+        if self.running_var is None:
+            self.running_var = factor * new
+        else:
+            n = input_shape.numel() / input_shape[1]
+            self.running_var = (
+                (factor * new * n / (n - 1)) + (1 - factor) * self.running_var
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
+        if self.training:
+            verify_batch_size(x.size())
+
         mean = x.mean(dim=(0, 2), keepdim=True)
         var = x.var(dim=(0, 2), keepdim=True, unbiased=False)
-
         if self.track_running_stats:
             if self.training:
                 self.num_batches_tracked += 1
-                self.running_mean = self._apply_momentum(mean, old=self.running_mean)
-                self.running_var = self._apply_momentum(var, old=self.running_var)
+                self._update_running_mean(mean)
+                self._update_running_var(var, input_shape=x.shape)
                 mean, var = self.running_mean, self.running_var
             elif self.num_batches_tracked.item() > 0:
                 mean, var = self.running_mean, self.running_var
@@ -249,12 +259,10 @@ if __name__ == "__main__":
     cbnorm(x2)
 
     assert (
-        torch.isclose(cbnorm.running_mean.real[0, :, 0], sbnorm.running_mean, atol=1e-7)
+        torch.isclose(cbnorm.running_mean.real[0, :, 0], sbnorm.running_mean)
         .all()
         .item()
     )
     assert (
-        torch.isclose(cbnorm.running_var.real[0, :, 0], sbnorm.running_var, atol=1e-3)
-        .all()
-        .item()
+        torch.isclose(cbnorm.running_var.real[0, :, 0], sbnorm.running_var).all().item()
     )
