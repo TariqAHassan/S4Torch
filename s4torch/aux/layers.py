@@ -49,7 +49,7 @@ class ComplexBatchNorm1d(nn.Module):
         self,
         num_features: int,
         eps: complex = 1e-05 + 1e-05j,
-        momentum: Optional[float] = 0.1,
+        momentum: Optional[complex] = 0.1 + 0.1j,
         affine: bool = True,
         track_running_stats: bool = True,
     ) -> None:
@@ -99,12 +99,12 @@ class ComplexBatchNorm1d(nn.Module):
         )
 
     @property
-    def _exp_avg_factor(self) -> float:
-        return (
-            1.0 / float(self.num_batches_tracked)
-            if self.momentum is None
-            else self.momentum
-        )
+    def _exp_avg_factor(self) -> complex:
+        if self.momentum is None:
+            factor = 1.0 / float(self.num_batches_tracked)
+            return factor + (factor * 1j)
+        else:
+            return self.momentum
 
     def _apply_momentum(
         self,
@@ -116,8 +116,8 @@ class ComplexBatchNorm1d(nn.Module):
         return ((1 - self._exp_avg_factor) * old) + (self._exp_avg_factor * new)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # x = [B, SEQ_LEN, DIM]
-        mean = x.mean(dim=(0, 1, 2), keepdim=True)
-        var = x.var(dim=(0, 1, 2), keepdim=True, unbiased=False).add(self.eps).sqrt()
+        mean = x.mean(dim=(0, 2), keepdim=True)
+        var = x.var(dim=(0, 2), keepdim=True, unbiased=False)
 
         if self.track_running_stats:
             if self.training:
@@ -128,7 +128,7 @@ class ComplexBatchNorm1d(nn.Module):
             elif self.num_batches_tracked.item() > 0:
                 mean, var = self.running_mean, self.running_var
 
-        out = (x - mean) / var
+        out = (x - mean) / var.add(self.eps).sqrt()
         if self.affine:
             out = out * self.weight + self.bias
         return out
@@ -234,24 +234,27 @@ if __name__ == "__main__":
     assert F.mse_loss(actual_ln, expected_ln).item() < 1e-5
 
     # BatchNorm
-    x0 = torch.ones_like(x.real)
-    x1 = torch.ones_like(x.real).mul(10)
+    x0 = torch.ones(2, 16, 10)
+    x1 = torch.randn_like(x0).mul(10)
+    x2 = torch.randn_like(x0).mul(15)
 
-    sbnorm = nn.BatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
-    cbnorm = ComplexBatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
+    sbnorm = nn.BatchNorm1d(x0.shape[1], eps=1e-5, momentum=0.1, affine=False)
+    cbnorm = ComplexBatchNorm1d(x0.shape[1], eps=1e-5, momentum=0.1, affine=False)
 
     sbnorm(x0)
-    sbnorm(x1)
     cbnorm(x0)
+    sbnorm(x1)
     cbnorm(x1)
+    sbnorm(x2)
+    cbnorm(x2)
 
     assert (
-        torch.isclose(cbnorm.running_var.real[0, :, 0], sbnorm.running_var, atol=1e-3)
+        torch.isclose(cbnorm.running_mean.real[0, :, 0], sbnorm.running_mean, atol=1e-7)
         .all()
         .item()
     )
     assert (
-        torch.isclose(cbnorm.running_mean.real[0, :, 0], sbnorm.running_mean)
+        torch.isclose(cbnorm.running_var.real[0, :, 0], sbnorm.running_var, atol=1e-3)
         .all()
         .item()
     )
