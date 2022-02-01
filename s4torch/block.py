@@ -12,7 +12,12 @@ from torch import nn
 
 from s4torch.aux.adapters import TemporalAdapter
 from s4torch.aux.complex import as_complex_layer
-from s4torch.aux.layers import ComplexDropout, ComplexLayerNorm1d, ComplexLinear
+from s4torch.aux.layers import (
+    ComplexBatchNorm1d,
+    ComplexDropout,
+    ComplexLayerNorm1d,
+    ComplexLinear,
+)
 from s4torch.aux.residual import Residual, SequentialWithResidual
 from s4torch.layer import S4Layer
 
@@ -23,8 +28,8 @@ def _make_norm(d_model: int, norm_type: Optional[str], complex_sig: bool) -> nn.
     elif norm_type == "layer":
         return (ComplexLayerNorm1d if complex_sig else nn.LayerNorm)(d_model)
     elif norm_type == "batch":
-        norm = nn.BatchNorm1d(d_model)
-        return TemporalAdapter(as_complex_layer(norm) if complex_sig else norm)
+        norm = ComplexBatchNorm1d(d_model) if complex_sig else nn.BatchNorm1d(d_model)
+        return TemporalAdapter(norm)
     else:
         raise ValueError(f"Unsupported norm type '{norm_type}'")
 
