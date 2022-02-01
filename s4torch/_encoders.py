@@ -10,13 +10,6 @@ from s4torch.aux.layers import ComplexLinear
 from s4torch.dsp.cwt import Cwt
 
 
-class StandardEncoder(nn.Linear):
-    def __init__(self, d_input: int, d_model: int, bias: bool = True) -> None:
-        super().__init__(in_features=d_input, out_features=d_model, bias=bias)
-        self.d_input = d_input
-        self.d_model = d_model
-
-
 class WaveletEncoder(nn.Module):
     def __init__(self, cwt: Cwt, d_model: int, bias: bool = True) -> None:
         super().__init__()
@@ -39,8 +32,5 @@ class WaveletEncoder(nn.Module):
 if __name__ == "__main__":
     x = torch.randn(2, 2 ** 16, 1)
 
-    for tform in (
-        StandardEncoder(x.shape[-1], d_model=128),
-        WaveletEncoder(Cwt(x.shape[1]), d_model=128),
-    ):
+    for tform in (WaveletEncoder(Cwt(x.shape[1]), d_model=128),):
         assert tform(x).shape == (*x.shape[:-1], tform.d_model)

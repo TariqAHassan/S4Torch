@@ -10,8 +10,8 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch._decoders import ComplexDecoder, StandardDecoder
-from s4torch._encoders import StandardEncoder, WaveletEncoder
+from s4torch.aux.layers import ComplexLinear
+from s4torch._encoders import WaveletEncoder
 from s4torch.block import S4Block
 from s4torch.dsp.cwt import Cwt
 from s4torch.dsp.utils import next_pow2
@@ -123,10 +123,13 @@ class S4Model(nn.Module):
                 Cwt(next_pow2(self.l_max)),
                 d_model=self.d_model,
             )
-            self.decoder = ComplexDecoder(self.d_model, self.d_output)
+            self.decoder = ComplexLinear(self.d_model, self.d_output)
+        elif complex_sig:
+            self.encoder = ComplexLinear(self.d_input, self.d_model)
+            self.decoder = ComplexLinear(self.d_model, self.d_output)
         else:
-            self.encoder = StandardEncoder(self.d_input, self.d_model)
-            self.decoder = StandardDecoder(self.d_model, self.d_output)
+            self.encoder = nn.Linear(self.d_input, self.d_model)
+            self.decoder = nn.Linear(self.d_model, self.d_output)
 
         self.blocks = nn.ModuleList(
             [
