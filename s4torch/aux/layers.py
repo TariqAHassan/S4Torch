@@ -239,7 +239,6 @@ if __name__ == "__main__":
 
     sbnorm = nn.BatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
     cbnorm = ComplexBatchNorm1d(x0.shape[1], eps=1e-5, affine=False)
-    self = cbnorm
 
     sbnorm(x0)
     sbnorm(x1)
