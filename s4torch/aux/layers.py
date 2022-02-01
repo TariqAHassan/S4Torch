@@ -14,6 +14,7 @@ from typing import Optional
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torch.nn.functional import _verify_batch_size as verify_batch_size
 
 
