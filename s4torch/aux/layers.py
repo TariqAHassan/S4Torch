@@ -14,6 +14,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.nn import init
+from typing import Optional
 
 
 class ComplexDropout(nn.Module):
@@ -39,6 +40,9 @@ class ComplexDropout(nn.Module):
 
 
 class ComplexLayerNorm1d(nn.Module):
+    weight: Optional[torch.Tensor]
+    bias: Optional[torch.Tensor]
+
     def __init__(
         self,
         normalized_shape: int,
@@ -58,7 +62,8 @@ class ComplexLayerNorm1d(nn.Module):
                 torch.zeros(1, 1, normalized_shape, dtype=torch.complex64)
             )
         else:
-            self.weight, self.bias = None, None
+            self.register_parameter("weight", None)
+            self.register_parameter("bias", None)
 
     def extra_repr(self) -> str:
         return (
