@@ -12,6 +12,7 @@ from typing import Optional
 
 import torch
 from torch import nn
+from torch import view_as_real as as_real
 from torch.nn import functional as F
 from torch.nn.functional import _verify_batch_size as verify_batch_size
 
@@ -39,9 +40,6 @@ class ComplexDropout(nn.Module):
 
 
 class ComplexBatchNorm1d(nn.Module):
-    weight: Optional[torch.Tensor]
-    bias: Optional[torch.Tensor]
-
     running_mean: Optional[torch.Tensor]
     running_var: Optional[torch.Tensor]
     num_batches_tracked: Optional[torch.Tensor]
@@ -62,15 +60,15 @@ class ComplexBatchNorm1d(nn.Module):
         self.track_running_stats = track_running_stats
 
         if affine:
-            self.weight = nn.Parameter(
-                torch.ones(1, num_features, 1, dtype=torch.complex64).add(1j)
+            self._weight = nn.Parameter(
+                as_real(torch.ones(1, num_features, 1, dtype=torch.complex64).add(1j))
             )
-            self.bias = nn.Parameter(
-                torch.zeros(1, num_features, 1, dtype=torch.complex64)
+            self._bias = nn.Parameter(
+                as_real(torch.zeros(1, num_features, 1, dtype=torch.complex64))
             )
         else:
-            self.register_parameter("weight", None)
-            self.register_parameter("bias", None)
+            self.register_parameter("_weight", None)
+            self.register_parameter("_bias", None)
 
         if track_running_stats:
             self.register_buffer(
@@ -89,6 +87,14 @@ class ComplexBatchNorm1d(nn.Module):
             self.register_buffer("running_mean", None)
             self.register_buffer("running_var", None)
             self.register_buffer("num_batches_tracked", None)
+
+    @property
+    def weight(self) -> Optional[torch.Tensor]:
+        return torch.view_as_complex(self._weight) if self.affine else self._weight
+
+    @property
+    def bias(self) -> Optional[torch.Tensor]:
+        return torch.view_as_complex(self._bias) if self.affine else self._bias
 
     def extra_repr(self) -> str:
         return (
@@ -147,9 +153,6 @@ class ComplexBatchNorm1d(nn.Module):
 
 
 class ComplexLayerNorm1d(nn.Module):
-    weight: Optional[torch.Tensor]
-    bias: Optional[torch.Tensor]
-
     def __init__(
         self,
         normalized_shape: int,
@@ -162,15 +165,31 @@ class ComplexLayerNorm1d(nn.Module):
         self.elementwise_affine = elementwise_affine
 
         if elementwise_affine:
-            self.weight = nn.Parameter(
-                torch.ones(1, 1, normalized_shape, dtype=torch.complex64).add(1j)
+            self._weight = nn.Parameter(
+                as_real(
+                    torch.ones(1, 1, normalized_shape, dtype=torch.complex64).add(1j)
+                )
             )
-            self.bias = nn.Parameter(
-                torch.zeros(1, 1, normalized_shape, dtype=torch.complex64)
+            self._bias = nn.Parameter(
+                as_real(torch.zeros(1, 1, normalized_shape, dtype=torch.complex64))
             )
         else:
-            self.register_parameter("weight", None)
-            self.register_parameter("bias", None)
+            self.register_parameter("_weight", None)
+            self.register_parameter("_bias", None)
+
+    @property
+    def weight(self) -> Optional[torch.Tensor]:
+        return (
+            torch.view_as_complex(self._weight)
+            if self.elementwise_affine
+            else self._weight
+        )
+
+    @property
+    def bias(self) -> Optional[torch.Tensor]:
+        return (
+            torch.view_as_complex(self._bias) if self.elementwise_affine else self._bias
+        )
 
     def extra_repr(self) -> str:
         return (
@@ -199,11 +218,21 @@ class ComplexLinear(nn.Module):
         real = nn.Linear(in_features, out_features, bias=bias)
         imag = nn.Linear(in_features, out_features, bias=bias)
 
-        self.weight = nn.Parameter(real.weight + imag.weight.mul(1j))
+        self._weight = nn.Parameter(as_real(real.weight + imag.weight.mul(1j)))
         if bias:
-            self.bias_tensor = nn.Parameter(real.bias + imag.bias.mul(1j))
+            self._bias_tensor = nn.Parameter(as_real(real.bias + imag.bias.mul(1j)))
         else:
-            self.bias_tensor = None
+            self._bias_tensor = None
+
+    @property
+    def weight(self) -> torch.Tensor:
+        return torch.view_as_complex(self._weight)
+
+    @property
+    def bias_tensor(self) -> Optional[torch.Tensor]:
+        return (
+            torch.view_as_complex(self._bias_tensor) if self.bias else self._bias_tensor
+        )
 
     def extra_repr(self) -> str:
         return (
