@@ -23,7 +23,7 @@ class WaveletEncoder(nn.Module):
         self.d_model = d_model
         self.bias = bias
 
-        self.linear = nn.Linear(cwt.n_scales, out_features=d_model, bias=bias)
+        self.linear = nn.Linear(cwt.n_scales * 2, out_features=d_model, bias=bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.ndim == 3 and x.shape[-1] == 1:
@@ -31,7 +31,8 @@ class WaveletEncoder(nn.Module):
         elif x.ndim != 2:
             raise IndexError(f"Expected x to be 2D or 3D with 1 feature")
 
-        x = self.cwt(x).transpose(-2, -1).abs()
+        x = self.cwt(x).transpose(-2, -1)
+        x = torch.cat([x.real, x.imag], dim=-1)
         return self.linear(x)
 
 
