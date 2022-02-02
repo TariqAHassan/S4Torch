@@ -106,6 +106,7 @@ class ComplexBatchNorm1d(nn.Module):
         else:
             return self.momentum
 
+    @torch.no_grad()
     def _update_running_mean(self, new: torch.Tensor) -> None:
         factor = self._get_exp_avg_factor()
         if self.running_mean is None:
@@ -113,6 +114,7 @@ class ComplexBatchNorm1d(nn.Module):
         else:
             self.running_mean = ((1 - factor) * self.running_mean) + (factor * new)
 
+    @torch.no_grad()
     def _update_running_var(self, new: torch.Tensor, input_shape: torch.Size) -> None:
         factor = self._get_exp_avg_factor()
         if self.running_var is None:
