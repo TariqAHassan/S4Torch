@@ -167,6 +167,7 @@ def main(
     d_model: int = 128,
     n_blocks: int = 6,
     s4_n: int = 64,
+    wavelet_tform: bool = False,
     p_dropout: float = 0.2,
     norm_strategy: str = "post",
     norm_type: Optional[str] = "layer",
@@ -203,6 +204,8 @@ def main(
         d_model (int): number of internal features
         n_blocks (int): number of S4 blocks to construct
         s4_n (int): dimensionality of the state representation
+        wavelet_tform (bool): if ``True`` encode signal using a
+            continuous wavelet transform (CWT).
         p_dropout (float): probability of elements being set to zero
         norm_strategy (str): position of normalization relative to ``S4Layer()``.
             Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
@@ -213,7 +216,7 @@ def main(
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
         limit_train_batches (int, float): number (``int``) or proportion (``float``)
-            of the total number of training batches to use on each epoch 
+            of the total number of training batches to use on each epoch
         lr (float): learning rate for parameters which do not belong to S4 blocks
         lr_s4 (float): learning rate for parameters which belong to S4 blocks
         min_lr (float): minimum learning rate to permit ``ReduceLROnPlateau`` to use
@@ -249,6 +252,7 @@ def main(
             n_blocks=n_blocks,
             n=s4_n,
             l_max=math.prod(seq_dataset.shape),
+            wavelet_tform=wavelet_tform,
             collapse=True,  # classification
             p_dropout=p_dropout,
             pooling=_parse_pooling(pooling),
