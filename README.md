@@ -215,6 +215,11 @@ python train.py \
 **Validation Accuracy**: 52.7% after 5 epochs, 69.4% after 72 epochs (best) <br>
 **Speed**: ~1.3 batches/second
 
+Notes:
+
+   * This experiment uses the absolute value of the CWT (with a morlet wavelet) as the input
+     representation. This produces a (rather substantial) 15%+ increase in performance.
+
 ## Components
 
 ### Layer
