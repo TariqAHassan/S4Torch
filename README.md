@@ -186,7 +186,7 @@ python train.py \
 Notes:
 
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
-  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsyth` dataset contains 
+  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsynth` dataset contains 
     the full four-second waveforms.
 
 ##### Continuous Wavelet Transform (`|CWT(x)|`)
