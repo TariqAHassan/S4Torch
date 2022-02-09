@@ -186,7 +186,7 @@ python train.py \
 Notes:
 
   * The model is tasked with classifying waveforms based on the musical instrument which generated them (10 classes)
-  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsyth` dataset contains 
+  * The `nsynth_short` dataset contains waveforms which are truncated after 2 seconds, whereas the `nsynth` dataset contains 
     the full four-second waveforms.
 
 ##### Continuous Wavelet Transform (`|CWT(x)|`)
@@ -214,6 +214,11 @@ python train.py \
 
 **Validation Accuracy**: 52.7% after 5 epochs, 69.4% after 72 epochs (best) <br>
 **Speed**: ~1.3 batches/second
+
+Notes:
+
+   * This experiment uses the absolute value of the CWT (with a morlet wavelet) as the input
+     representation. This produces a (rather substantial) 15%+ increase in performance.
 
 ## Components
 
