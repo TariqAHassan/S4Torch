@@ -67,11 +67,11 @@ class S4Model(nn.Module):
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
         norm_strategy (str): position of normalization relative to ``S4Layer()``.
             Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
             or "both" (before and after ``S4Layer()``).
-        norm_type (str, optional): type of normalization to use.
-            Options: ``batch``, ``layer``, ``None``.
         pooling (nn.AvgPool1d, nn.MaxPool1d, optional): pooling method to use
             following each ``S4Block()``.
 
@@ -89,8 +89,8 @@ class S4Model(nn.Module):
         collapse: bool = False,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
-        norm_strategy: str = "post",
         norm_type: Optional[str] = "layer",
+        norm_strategy: str = "post",
         pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
         super().__init__()
@@ -103,8 +103,8 @@ class S4Model(nn.Module):
         self.wavelet_tform = wavelet_tform
         self.collapse = collapse
         self.p_dropout = p_dropout
-        self.norm_strategy = norm_strategy
         self.norm_type = norm_type
+        self.norm_strategy = norm_strategy
         self.pooling = pooling
 
         *self.seq_len_schedule, (self.seq_len_out, _) = _seq_length_schedule(
@@ -128,10 +128,11 @@ class S4Model(nn.Module):
                     d_model=d_model,
                     n=n,
                     l_max=seq_len,
+                    d_output=d_model,
                     p_dropout=p_dropout,
                     activation=activation,
-                    norm_strategy=norm_strategy,
                     norm_type=norm_type,
+                    norm_strategy=norm_strategy,
                     pooling=pooling if pooling and pool_ok else None,
                 )
                 for (seq_len, pool_ok) in self.seq_len_schedule
