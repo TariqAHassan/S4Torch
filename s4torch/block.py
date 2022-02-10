@@ -37,6 +37,8 @@ class S4Block(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
+        d_output (int, output): number of output features. If ``None``,
+            defaults to ``d_model``.
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
