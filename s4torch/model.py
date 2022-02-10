@@ -128,7 +128,6 @@ class S4Model(nn.Module):
                     d_model=d_model,
                     n=n,
                     l_max=seq_len,
-                    d_output=d_model,
                     p_dropout=p_dropout,
                     activation=activation,
                     norm_type=norm_type,

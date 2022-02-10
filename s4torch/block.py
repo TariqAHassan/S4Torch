@@ -37,8 +37,6 @@ class S4Block(nn.Module):
         d_model (int): number of internal features
         n (int): dimensionality of the state representation
         l_max (int): length of input signal
-        d_output (int, output): number of output features. If ``None``,
-            defaults to ``d_model``.
         p_dropout (float): probability of elements being set to zero
         activation (Type[nn.Module]): activation function to use after
             ``S4Layer()``.
@@ -57,7 +55,6 @@ class S4Block(nn.Module):
         d_model: int,
         n: int,
         l_max: int,
-        d_output: Optional[int] = None,
         p_dropout: float = 0.0,
         activation: Type[nn.Module] = nn.GELU,
         norm_type: Optional[str] = "layer",
@@ -68,7 +65,6 @@ class S4Block(nn.Module):
         self.d_model = d_model
         self.n = n
         self.l_max = l_max
-        self.d_output = d_output
         self.p_dropout = p_dropout
         self.activation = activation
         self.norm_type = norm_type
@@ -87,7 +83,7 @@ class S4Block(nn.Module):
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
-            nn.Linear(d_model, d_output or d_model, bias=True),
+            nn.Linear(d_model, d_output, bias=True),
             Residual(),
             (
                 _make_norm(d_model, norm_type=norm_type)
