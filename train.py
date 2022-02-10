@@ -169,8 +169,8 @@ def main(
     s4_n: int = 64,
     wavelet_tform: bool = False,
     p_dropout: float = 0.2,
-    norm_strategy: str = "post",
     norm_type: Optional[str] = "layer",
+    norm_strategy: str = "post",
     pooling: Optional[str] = None,
     # Training
     max_epochs: Optional[int] = None,
@@ -207,11 +207,11 @@ def main(
         wavelet_tform (bool): if ``True`` encode signal using a
             continuous wavelet transform (CWT).
         p_dropout (float): probability of elements being set to zero
+        norm_type (str, optional): type of normalization to use.
+            Options: ``batch``, ``layer``, ``None``.
         norm_strategy (str): position of normalization relative to ``S4Layer()``.
             Must be "pre" (before ``S4Layer()``), "post" (after ``S4Layer()``)
             or "both" (before and after ``S4Layer()``).
-        norm_type (str, optional): type of normalization to use.
-            Options: ``batch``, ``layer``, ``None``.
         pooling (str, optional): pooling method to use. Options: ``None``,
             ``avg_KERNEL_SIZE``, ``max_KERNEL_SIZE``. Example: ``avg_2``.
         max_epochs (int, optional): maximum number of epochs to train for
@@ -256,8 +256,8 @@ def main(
             collapse=True,  # classification
             p_dropout=p_dropout,
             pooling=_parse_pooling(pooling),
-            norm_strategy=norm_strategy,
             norm_type=norm_type,
+            norm_strategy=norm_strategy,
         ),
         hparams=hparams,
         seq_dataset=seq_dataset,
