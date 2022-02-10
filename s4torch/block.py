@@ -83,7 +83,7 @@ class S4Block(nn.Module):
             S4Layer(d_model, n=n, l_max=l_max),
             activation(),
             nn.Dropout(p_dropout),
-            nn.Linear(d_model, d_output, bias=True),
+            nn.Linear(d_model, d_model, bias=True),
             Residual(),
             (
                 _make_norm(d_model, norm_type=norm_type)
