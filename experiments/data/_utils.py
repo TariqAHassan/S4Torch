@@ -11,7 +11,12 @@ import requests
 from tqdm import tqdm
 
 
-def download(url: str, dst: Path, chunk_size: int = 1024, verbose: bool = True) -> Path:
+def download(
+    url: str,
+    dst: Path,
+    chunk_size: int = 1024,
+    verbose: bool = True,
+) -> Path:
     """Download a file from a ``url`` to ``dst``.
 
     Args:
@@ -46,7 +51,10 @@ def download(url: str, dst: Path, chunk_size: int = 1024, verbose: bool = True) 
 
 
 def untar(
-    src: Path, dst: Path, delete_src: bool = False, verbose: bool = False
+    src: Path,
+    dst: Path,
+    delete_src: bool = False,
+    verbose: bool = False,
 ) -> Path:
     """Untar ``src``.
 
