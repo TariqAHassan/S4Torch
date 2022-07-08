@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 
 def download(url: str, dst: Path, chunk_size: int = 1024, verbose: bool = True) -> Path:
-    """Dowload a file from a ``url`` to ``dst``.
+    """Download a file from a ``url`` to ``dst``.
 
     Args:
         url (str): URL of the file to download
