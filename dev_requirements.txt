@@ -1,10 +1,10 @@
 black==21.12b0
 fire==0.4.0
 isort==5.10.1
-librosa==0.8.1
+librosa==0.9.1
 matplotlib==3.5.1
-numpy==1.20
-pytorch-lightning==1.5.9
+numpy==1.22
+pytorch-lightning==1.6.4
 requests==2.27.1
 torchaudio==0.10.1
 torchvision==0.11.2

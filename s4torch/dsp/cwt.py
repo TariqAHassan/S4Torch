@@ -130,7 +130,7 @@ if __name__ == "__main__":
     PLOT: bool = False
     SR: int = 16_000
 
-    y, sr = librosa.load(librosa.util.example_audio_file(), sr=SR, duration=1)
+    y, sr = librosa.load(librosa.ex("trumpet"), sr=SR, duration=1)
     y = torch.from_numpy(y).unsqueeze(0)
 
     transform = Cwt(next_pow2(y.shape[-1]))
