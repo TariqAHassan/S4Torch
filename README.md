@@ -217,7 +217,7 @@ python train.py \
 
 Notes:
 
-   * This experiment uses the absolute value of the CWT (with a morlet wavelet) as the input
+   * This experiment uses the magnitude of the CWT (with a morlet wavelet) as the input
      representation. This produces a (rather substantial) 15%+ increase in performance.
 
 ## Components
