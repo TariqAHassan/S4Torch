@@ -36,7 +36,7 @@ class WaveletEncoder(nn.Module):
 
 
 if __name__ == "__main__":
-    x = torch.randn(2, 2 ** 16, 1)
+    x = torch.randn(2, 2**16, 1)
 
     for tform in (
         StandardEncoder(x.shape[-1], d_model=128),
