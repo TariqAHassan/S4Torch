@@ -3,19 +3,22 @@
     Setup
 
 """
-from typing import List
+import shlex
+from subprocess import check_call
 
 from setuptools import find_packages, setup
+from setuptools.command.install import install
 
 
-def _get_requirements() -> List[str]:
-    with open("requirements.txt", "r") as f:
-        return [i.strip().strip("\n") for i in f.readlines()]
+class Install(install):
+    def run(self) -> None:
+        super().run()
+        check_call(shlex.split("pip install -r requirements.txt"))
 
 
 setup(
     packages=find_packages(exclude=["tests", "experiments"]),
-    install_requires=_get_requirements(),
+    cmdclass={"install": Install},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3.8",
