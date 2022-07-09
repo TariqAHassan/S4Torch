@@ -125,9 +125,9 @@ class S4Layer(nn.Module):
             init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
         )
         self.Ct = nn.Parameter(
-            init.xavier_normal_(torch.empty(d_model, n, dtype=torch.complex64))
+            init.normal_(torch.empty(d_model, n, dtype=torch.complex64), std=1.0)
         )
-        self.D = nn.Parameter(torch.ones(1, 1, d_model))
+        self.D = nn.Parameter(init.normal_(torch.empty(1, 1, d_model), std=1.0))
         self.log_step = nn.Parameter(_log_step_initializer(torch.rand(d_model)))
 
     def extra_repr(self) -> str:
