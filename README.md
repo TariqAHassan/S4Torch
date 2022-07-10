@@ -51,7 +51,7 @@ CLI documentation can be obtained by running `python train.py --help`.
  * development requirements must be installed prior to training. This can be accomplished by 
    running `pip install -r dev_requirements.txt`.
  * average pooling after each S4 block is used in some training sessions described below, whereas the 
-   original S4 implementation only uses average pooling prior to decoding. The primary motivation for adding 
+   original S4 implementation only uses average pooling prior to decoding. The primary motivation for 
    additional pooling was to reduce memory usage and, at least in the case of Sequential MNIST, does not appear 
    reduce accuracy. These additional pooling layers can be disabled by setting `--pooling=None`, or by simply 
    omitting the `--pooling` flag.
