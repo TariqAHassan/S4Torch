@@ -47,7 +47,7 @@ class SequenceDataset:
         return path
 
     @property
-    def classes(self) -> list[str | int]:
+    def all_classes(self) -> list[str | int]:
         """Names of all classes in the dataset."""
         if self.class_names:
             return self.class_names
@@ -57,7 +57,7 @@ class SequenceDataset:
     @property
     def n_classes(self) -> int:
         """Number of class_names in the dataset."""
-        return len(self.classes)
+        return len(self.all_classes)
 
     @property
     def channels(self) -> int:
@@ -181,8 +181,8 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(root=self.root_dir, download=True, **kwargs)
 
-        self.label_ids = {l: e for e, l in enumerate(self.classes)}
-        self._walker = [i for i in self._walker if Path(i).parent.name in self.classes]
+        self.label_ids = {l: e for e, l in enumerate(self.all_classes)}
+        self._walker = [i for i in self._walker if Path(i).parent.name in self.all_classes]
 
     def _pad(self, y: torch.Tensor) -> torch.Tensor:
         if y.shape[-1] == self.SEGMENT_SIZE:
@@ -289,7 +289,7 @@ class NSynthDataset(SequenceDataset):
         return metadata
 
     @cached_property
-    def classes(self) -> list[str | int]:
+    def all_classes(self) -> list[str | int]:
         return sorted({v["instrument_family_str"] for v in self.metadata.values()})
 
     @cached_property
@@ -324,7 +324,7 @@ if __name__ == "__main__":
     smnist_wrapper = SMnistDataset()
 
     assert smnist_wrapper.NAME == "SMNIST"
-    assert isinstance(smnist_wrapper.classes, list)
+    assert isinstance(smnist_wrapper.all_classes, list)
     assert smnist_wrapper.n_classes == 10
     assert smnist_wrapper.channels == 0
     assert smnist_wrapper.shape == (28 * 28,)
