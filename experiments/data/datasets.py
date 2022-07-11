@@ -182,7 +182,9 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
         super().__init__(root=self.root_dir, download=True, **kwargs)
 
         self.label_ids = {l: e for e, l in enumerate(self.all_classes)}
-        self._walker = [i for i in self._walker if Path(i).parent.name in self.all_classes]
+        self._walker = [
+            i for i in self._walker if Path(i).parent.name in self.all_classes
+        ]
 
     def _pad(self, y: torch.Tensor) -> torch.Tensor:
         if y.shape[-1] == self.SEGMENT_SIZE:
