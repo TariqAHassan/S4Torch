@@ -16,15 +16,21 @@ from typing import Any, Optional
 import numpy as np
 import torch
 import torchaudio
+from torch import nn
 from torch.nn import functional as F
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
-from torchvision.transforms import Compose, Lambda, ToTensor
+from torchvision.transforms import Compose, ToTensor
 
 from experiments.data._transforms import build_permute_transform
 from experiments.data._utils import download, untar
 
 _DATASETS_DIRECTORY = Path("~/datasets")
+
+
+class FlattenAndTranspose(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return t.flatten(1).transpose(-2, -1)
 
 
 class SequenceDataset:
@@ -78,7 +84,7 @@ class SMnistDataset(SequenceDataset, MNIST):
         super().__init__(
             root=self.root_dir,
             download=True,
-            transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
+            transform=Compose([ToTensor(), nn.Flatten(0)]),
             **kwargs,
         )
 
@@ -119,12 +125,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
         super().__init__(
             root=self.root_dir,
             download=True,
-            transform=Compose(
-                [
-                    ToTensor(),
-                    Lambda(lambda t: t.flatten(1).transpose(-2, -1)),
-                ]
-            ),
+            transform=Compose([ToTensor(), FlattenAndTranspose()]),
             **kwargs,
         )
 
