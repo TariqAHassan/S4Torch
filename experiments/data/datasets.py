@@ -330,3 +330,7 @@ if __name__ == "__main__":
     assert smnist_wrapper.n_classes == 10
     assert smnist_wrapper.channels == 0
     assert smnist_wrapper.shape == (28 * 28,)
+
+    x, y = smnist_wrapper[0]
+    assert x.shape == smnist_wrapper.shape
+    assert isinstance(y, int)
