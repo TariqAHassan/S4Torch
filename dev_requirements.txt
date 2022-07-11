@@ -1,4 +1,4 @@
-black==21.12b0
+black==22.6.0
 fire==0.4.0
 isort==5.10.1
 librosa==0.9.1
