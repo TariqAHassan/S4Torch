@@ -22,15 +22,10 @@ from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import Compose, ToTensor
 
-from experiments.data._transforms import build_permute_transform
+from experiments.data._transforms import build_permute_transform, FlattenAndTranspose
 from experiments.data._utils import download, untar
 
 _DATASETS_DIRECTORY = Path("~/datasets")
-
-
-class FlattenAndTranspose(nn.Module):
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return t.flatten(1).transpose(-2, -1)
 
 
 class SequenceDataset:

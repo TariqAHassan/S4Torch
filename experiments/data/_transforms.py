@@ -13,6 +13,11 @@ from torch import nn
 from numpy.random import RandomState
 
 
+class FlattenAndTranspose(nn.Module):
+    def forward(self, t: torch.Tensor) -> torch.Tensor:  # noqa
+        return t.flatten(1).transpose(-2, -1)
+
+
 def build_permute_transform(shape: tuple[int, ...], seed: int = 42) -> nn.Module:
     """Generate a random permutation transform, conditioned on ``seed`.
 
