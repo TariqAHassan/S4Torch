@@ -9,8 +9,8 @@
 from math import prod
 
 import torch
-from torch import nn
 from numpy.random import RandomState
+from torch import nn
 
 
 class FlattenAndTranspose(nn.Module):
