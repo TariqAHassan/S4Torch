@@ -16,12 +16,13 @@ from typing import Any, Optional
 import numpy as np
 import torch
 import torchaudio
+from torch import nn
 from torch.nn import functional as F
 from torchaudio.datasets import SPEECHCOMMANDS as _SpeechCommands  # noqa
 from torchvision.datasets import CIFAR10, MNIST
-from torchvision.transforms import Compose, Lambda, ToTensor
+from torchvision.transforms import Compose, ToTensor
 
-from experiments.data._transforms import build_permute_transform
+from experiments.data._transforms import FlattenAndTranspose, build_permute_transform
 from experiments.data._utils import download, untar
 
 _DATASETS_DIRECTORY = Path("~/datasets")
@@ -78,7 +79,7 @@ class SMnistDataset(SequenceDataset, MNIST):
         super().__init__(
             root=self.root_dir,
             download=True,
-            transform=Compose([ToTensor(), Lambda(lambda t: t.flatten())]),
+            transform=Compose([ToTensor(), nn.Flatten(0)]),
             **kwargs,
         )
 
@@ -93,6 +94,7 @@ class SMnistDataset(SequenceDataset, MNIST):
 
 class PMnistDataset(SequenceDataset, MNIST):
     NAME: str = "PMNIST"
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
@@ -119,12 +121,7 @@ class SCIFAR10Dataset(SequenceDataset, CIFAR10):
         super().__init__(
             root=self.root_dir,
             download=True,
-            transform=Compose(
-                [
-                    ToTensor(),
-                    Lambda(lambda t: t.flatten(1).transpose(-2, -1)),
-                ]
-            ),
+            transform=Compose([ToTensor(), FlattenAndTranspose()]),
             **kwargs,
         )
 
@@ -182,7 +179,9 @@ class SpeechCommands(SequenceDataset, _SpeechCommands):
         super().__init__(root=self.root_dir, download=True, **kwargs)
 
         self.label_ids = {l: e for e, l in enumerate(self.all_classes)}
-        self._walker = [i for i in self._walker if Path(i).parent.name in self.all_classes]
+        self._walker = [
+            i for i in self._walker if Path(i).parent.name in self.all_classes
+        ]
 
     def _pad(self, y: torch.Tensor) -> torch.Tensor:
         if y.shape[-1] == self.SEGMENT_SIZE:
@@ -328,3 +327,7 @@ if __name__ == "__main__":
     assert smnist_wrapper.n_classes == 10
     assert smnist_wrapper.channels == 0
     assert smnist_wrapper.shape == (28 * 28,)
+
+    x, y = smnist_wrapper[0]
+    assert x.shape == smnist_wrapper.shape
+    assert isinstance(y, int)

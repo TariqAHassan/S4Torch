@@ -10,10 +10,15 @@ from math import prod
 
 import torch
 from numpy.random import RandomState
-from torchvision.transforms import Lambda
+from torch import nn
 
 
-def build_permute_transform(shape: tuple[int, ...], seed: int = 42) -> Lambda:
+class FlattenAndTranspose(nn.Module):
+    def forward(self, t: torch.Tensor) -> torch.Tensor:  # noqa
+        return t.flatten(1).transpose(-2, -1)
+
+
+def build_permute_transform(shape: tuple[int, ...], seed: int = 42) -> nn.Module:
     """Generate a random permutation transform, conditioned on ``seed`.
 
     Args:
@@ -28,7 +33,12 @@ def build_permute_transform(shape: tuple[int, ...], seed: int = 42) -> Lambda:
         RandomState(seed).permutation(prod(shape)),
         dtype=torch.int64,
     )
-    return Lambda(lambda t: t.view(-1)[permutation].view(*shape))
+
+    class Transform(nn.Module):
+        def forward(self, t: torch.Tensor) -> torch.Tensor:  # noqa
+            return t.view(-1)[permutation].view(*shape)
+
+    return Transform()
 
 
 if __name__ == "__main__":
