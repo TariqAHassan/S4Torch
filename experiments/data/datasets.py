@@ -99,6 +99,7 @@ class SMnistDataset(SequenceDataset, MNIST):
 
 class PMnistDataset(SequenceDataset, MNIST):
     NAME: str = "PMNIST"
+    class_names: list[int] = list(range(10))
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(
