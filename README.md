@@ -8,7 +8,7 @@ and JAX-based [library](https://github.com/srush/annotated-s4/) by [@srush](http
 ## Installation
 
 ```sh
-pip install git+git://github.com/TariqAHassan/s4torch
+pip install git+https://github.com/TariqAHassan/s4torch
 ```
 
 Requires Python 3.9+.
