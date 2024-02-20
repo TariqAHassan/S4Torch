@@ -1,2 +1,2 @@
 torch>=1.10.1
-git+https://github.com/regeirk/pycwt@master#egg=pycwt
+git+https://github.com/regeirk/pycwt@main#egg=pycwt
