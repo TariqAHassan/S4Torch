@@ -12,7 +12,6 @@ from torch import nn
 
 from s4torch._encoders import StandardEncoder, WaveletEncoder
 from s4torch.block import S4Block
-from s4torch.dsp.cwt import Cwt
 from s4torch.dsp.utils import next_pow2
 
 
@@ -114,6 +113,8 @@ class S4Model(nn.Module):
         )
 
         if wavelet_tform:
+            from s4torch.dsp.cwt import Cwt
+
             self.encoder = WaveletEncoder(
                 Cwt(next_pow2(self.l_max)),
                 d_model=self.d_model,
