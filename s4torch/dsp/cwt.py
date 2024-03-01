@@ -123,6 +123,25 @@ class Cwt(nn.Module):
         return torch.fft.ifft(x_ft * self.psi_ft_bar.type_as(x), dim=-1)
 
 
+class CwtWithAdapter(nn.Module):
+    def __init__(self, cwt: Cwt, d_model: int, bias: bool = True) -> None:
+        super().__init__()
+        self.cwt = cwt
+        self.d_model = d_model
+        self.bias = bias
+
+        self.linear = nn.Linear(cwt.n_scales, out_features=d_model, bias=bias)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.ndim == 3 and x.shape[-1] == 1:
+            x = x.squeeze(-1)
+        elif x.ndim != 2:
+            raise IndexError(f"Expected x to be 2D or 3D with 1 feature")
+
+        x = self.cwt(x).transpose(-2, -1).abs()
+        return self.linear(x)
+
+
 if __name__ == "__main__":
     import librosa
     import matplotlib.pyplot as plt
