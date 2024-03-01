@@ -226,7 +226,7 @@ Notes:
 
    * This experiment uses the magnitude of the CWT (with a morlet wavelet) as the input
      representation. This produces a (rather substantial) 15%+ increase in performance.
-   * **This requires that you have [`pycwt`](https://github.com/regeirk/pycwt) installed. See [Installation](#installation) above.** 
+   * **This requires that you have [`pycwt`](https://github.com/regeirk/pycwt) installed. See the [Installation](#installation) instructions above.** 
 
 ## Components
 
