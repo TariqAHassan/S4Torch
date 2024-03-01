@@ -11,6 +11,13 @@ and JAX-based [library](https://github.com/srush/annotated-s4/) by [@srush](http
 pip install git+https://github.com/TariqAHassan/s4torch
 ```
 
+If you wish to perform development and/or use wavelet-based transforms, you
+will need to install the development requirements. This can be done with:
+
+```shell
+pip install -r dev_requirements.txt
+```
+
 Requires Python 3.9+.
 
 ## Quick Start
@@ -219,6 +226,7 @@ Notes:
 
    * This experiment uses the magnitude of the CWT (with a morlet wavelet) as the input
      representation. This produces a (rather substantial) 15%+ increase in performance.
+   * **This requires that you have [`pycwt`](https://github.com/regeirk/pycwt) installed. See the [Installation](#installation) instructions above.** 
 
 ## Components
 

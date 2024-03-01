@@ -6,6 +6,7 @@
         * https://discuss.pytorch.org/t/permutate-mnist-help-needed/22901
 
 """
+
 from math import prod
 
 import torch

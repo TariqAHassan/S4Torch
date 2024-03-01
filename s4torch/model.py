@@ -3,6 +3,7 @@
     S4 Model
 
 """
+
 from __future__ import annotations
 
 from typing import Optional, Type
@@ -10,9 +11,8 @@ from typing import Optional, Type
 import torch
 from torch import nn
 
-from s4torch._encoders import StandardEncoder, WaveletEncoder
+from s4torch.aux.encoders import StandardEncoder
 from s4torch.block import S4Block
-from s4torch.dsp.cwt import Cwt
 from s4torch.dsp.utils import next_pow2
 
 
@@ -114,7 +114,9 @@ class S4Model(nn.Module):
         )
 
         if wavelet_tform:
-            self.encoder = WaveletEncoder(
+            from s4torch.dsp.cwt import Cwt, CwtWithAdapter
+
+            self.encoder = CwtWithAdapter(
                 Cwt(next_pow2(self.l_max)),
                 d_model=self.d_model,
             )

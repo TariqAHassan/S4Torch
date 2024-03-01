@@ -6,6 +6,7 @@
         * https://github.com/HazyResearch/state-spaces
 
 """
+
 from __future__ import annotations
 
 import json
