@@ -3,6 +3,7 @@
     S4 Training
 
 """
+
 from __future__ import annotations
 
 import math

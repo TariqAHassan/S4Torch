@@ -3,6 +3,7 @@
     S4 Model
 
 """
+
 from __future__ import annotations
 
 from typing import Optional, Type
@@ -27,9 +28,9 @@ def _parse_pool_kernel(pool_kernel: Optional[int | tuple[int]]) -> int:
 
 
 def _seq_length_schedule(
-        n_blocks: int,
-        l_max: int,
-        pool_kernel: Optional[int | tuple[int]],
+    n_blocks: int,
+    l_max: int,
+    pool_kernel: Optional[int | tuple[int]],
 ) -> list[tuple[int, int]]:
     ppk = _parse_pool_kernel(pool_kernel)
 
@@ -77,20 +78,20 @@ class S4Model(nn.Module):
     """
 
     def __init__(
-            self,
-            d_input: int,
-            d_model: int,
-            d_output: int,
-            n_blocks: int,
-            n: int,
-            l_max: int,
-            wavelet_tform: bool = False,
-            collapse: bool = False,
-            p_dropout: float = 0.0,
-            activation: Type[nn.Module] = nn.GELU,
-            norm_type: Optional[str] = "layer",
-            norm_strategy: str = "post",
-            pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
+        self,
+        d_input: int,
+        d_model: int,
+        d_output: int,
+        n_blocks: int,
+        n: int,
+        l_max: int,
+        wavelet_tform: bool = False,
+        collapse: bool = False,
+        p_dropout: float = 0.0,
+        activation: Type[nn.Module] = nn.GELU,
+        norm_type: Optional[str] = "layer",
+        norm_strategy: str = "post",
+        pooling: Optional[nn.AvgPool1d | nn.MaxPool1d] = None,
     ) -> None:
         super().__init__()
         self.d_input = d_input
